@@ -1,0 +1,15 @@
+[package]
+name = "rast"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+glam = "0.20.5"
+glutin = "0.28.0"
+image = "0.24.2"
+gl33 = "0.2.1"
+
+[features]
+global_loader = []
