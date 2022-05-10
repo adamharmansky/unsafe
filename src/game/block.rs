@@ -29,6 +29,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((0.0, 0.0, -1.0));
+            }
             size += 4;
         }
         if sides.left {
@@ -42,6 +45,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((-1.0, 0.0, 0.0));
+            }
             size += 4;
         }
         if sides.front {
@@ -55,6 +61,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((0.0, 0.0, 1.0));
+            }
             size += 4;
         }
         if sides.right {
@@ -68,6 +77,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((1.0, 0.0, 0.0));
+            }
             size += 4;
         }
         if sides.top {
@@ -81,6 +93,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((0.0, 1.0, 0.0));
+            }
             size += 4;
         }
         if sides.bottom {
@@ -94,6 +109,9 @@ impl MeshData {
             self.texcoords.push((top_left.x, bottom_right.y));
             self.texcoords.push((bottom_right.x, top_left.y));
             self.texcoords.push((bottom_right.x, bottom_right.y));
+            for _ in 0..4 {
+                self.normals.push((0.0, -1.0, 0.0));
+            }
         }
     }
 }

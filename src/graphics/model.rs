@@ -5,6 +5,7 @@ pub struct Model {
     vertices: u32,
     indices: u32,
     texcoords: u32,
+    normals: u32,
     count: i32,
 }
 
@@ -14,6 +15,7 @@ impl Drop for Model {
             glDeleteBuffers(1, &self.vertices);
             glDeleteBuffers(1, &self.indices);
             glDeleteBuffers(1, &self.texcoords);
+            glDeleteBuffers(1, &self.normals);
             glDeleteVertexArrays(1, &self.vao);
         }
     }
@@ -39,6 +41,7 @@ impl Model {
         let mut vertices: u32 = 0;
         let mut indices: u32 = 0;
         let mut texcoords: u32 = 0;
+        let mut normals: u32 = 0;
         unsafe {
             // the VAO which will hold all of our VBOs
             glGenVertexArrays(1, &mut id);
@@ -86,6 +89,26 @@ impl Model {
             );
             glEnableVertexAttribArray(1);
 
+            // normals
+            glGenBuffers(1, &mut normals);
+            assert_ne!(normals, 0);
+            glBindBuffer(gl33::GL_ARRAY_BUFFER, normals);
+            glBufferData(
+                gl33::GL_ARRAY_BUFFER,
+                (data.normals.len() * std::mem::size_of::<(f32, f32, f32)>()) as isize,
+                data.normals.as_ptr() as *const std::ffi::c_void,
+                gl33::GL_STATIC_DRAW,
+            );
+            glVertexAttribPointer(
+                2,
+                3,
+                gl33::GL_FLOAT,
+                0,
+                std::mem::size_of::<(f32, f32, f32)>().try_into().unwrap(),
+                0 as *const _,
+            );
+            glEnableVertexAttribArray(2);
+
             // indices
             glGenBuffers(1, &mut indices);
             assert_ne!(indices, 0);
@@ -103,6 +126,7 @@ impl Model {
             vertices,
             indices,
             texcoords,
+            normals,
             count: (data.indices.len() * 3) as i32,
         }
     }

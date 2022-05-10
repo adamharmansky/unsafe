@@ -33,19 +33,27 @@ pub fn start() {
     const VSCODE: &str = r#"#version 330 core
         layout (location = 0) in vec3 pos;
         layout (location = 1) in vec2 texCoords;
+        layout (location = 2) in vec3 normals;
         uniform mat4 view;
         uniform mat4 model;
-        out vec2 tCoords;
+        out vec2 frag_texcoords;
+        out vec3 frag_normals;
         void main() {
-            tCoords = texCoords;
+            frag_texcoords = texCoords;
+            frag_normals = normals;
             gl_Position = view * model * vec4(pos, 1.0);
         }"#;
     const FSCODE: &str = r#"#version 330 core
         out vec4 final_color;
-        in vec2 tCoords;
+        in vec2 frag_texcoords;
+        in vec3 frag_normals;
         uniform sampler2D textur;
         void main() {
-            final_color = texture(textur, tCoords);
+            // final_color = texture(textur, frag_texcoords);
+            float light = dot(frag_normals, normalize(vec3(1.0, 2.0, -1.0)));
+            light = light / 2.0 + 0.5;
+            final_color = texture(textur, frag_texcoords) * light;
+            final_color.w = 1.0;
         }"#;
     let shader = unsafe { Shader::new(VSCODE, FSCODE) };
     let view_matrix = shader.create_uniform("view");
@@ -137,7 +145,7 @@ pub fn start() {
                     player_pos.y as _,
                     player_pos.z as _,
                 ));
-                glClearColor(0f32, 0f32, 0f32, 1f32);
+                glClearColor(0.5, 0.8, 1.0, 1.0);
                 glClear(gl33::GL_COLOR_BUFFER_BIT | gl33::GL_DEPTH_BUFFER_BIT);
                 let mat = glam::Mat4::perspective_lh(1.0, 800.0 / 600.0, 0.1, 1000.0)
                     * glam::Mat4::from_rotation_x(-player_rotation.x)

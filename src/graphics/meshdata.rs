@@ -3,6 +3,7 @@ pub struct MeshData {
     pub vertices: Vec<(f32, f32, f32)>,
     pub indices: Vec<(i32, i32, i32)>,
     pub texcoords: Vec<(f32, f32)>,
+    pub normals: Vec<(f32, f32, f32)>,
 }
 
 #[allow(unused)]
@@ -15,6 +16,7 @@ impl MeshData {
                 .push((i.0 + index_offset, i.1 + index_offset, i.2 + index_offset));
         }
         self.texcoords.append(&mut other.texcoords);
+        self.normals.append(&mut other.normals);
     }
 
     pub fn translate(&mut self, pos: (f32, f32, f32)) {
@@ -30,6 +32,7 @@ impl MeshData {
             vertices: Vec::new(),
             indices: Vec::new(),
             texcoords: Vec::new(),
+            normals: Vec::new(),
         }
     }
 
@@ -103,6 +106,32 @@ impl MeshData {
                 (0.0, 1.0),
                 (1.0, 0.0),
                 (1.0, 1.0),
+            ],
+            normals: vec![
+                (0.0, 0.0, -1.0),
+                (0.0, 0.0, -1.0),
+                (0.0, 0.0, -1.0),
+                (0.0, 0.0, -1.0),
+                (-1.0, 0.0, 0.0),
+                (-1.0, 0.0, 0.0),
+                (-1.0, 0.0, 0.0),
+                (-1.0, 0.0, 0.0),
+                (0.0, 0.0, 1.0),
+                (0.0, 0.0, 1.0),
+                (0.0, 0.0, 1.0),
+                (0.0, 0.0, 1.0),
+                (1.0, 0.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (1.0, 0.0, 0.0),
+                (0.0, 1.0, 0.0),
+                (0.0, 1.0, 0.0),
+                (0.0, 1.0, 0.0),
+                (0.0, 1.0, 0.0),
+                (0.0, -1.0, 0.0),
+                (0.0, -1.0, 0.0),
+                (0.0, -1.0, 0.0),
+                (0.0, -1.0, 0.0),
             ],
         }
     }

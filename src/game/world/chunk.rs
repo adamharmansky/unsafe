@@ -29,12 +29,14 @@ impl Chunk {
                             let x: i32 = px + i;
                             let y: i32 = py + k;
                             let z: i32 = pz + j;
-                            if (x as f32 / 10.0).sin()
-                                + (y as f32 / 10.0 + (x as f32 / 3.0).sin()).sin()
-                                + (z as f32 / 10.0).sin()
-                                > 0.5
+                            if (y as f32)
+                                < ((x as f32 / 2.0) - (z as f32 / 4.0)).sin()
+                                    - 2.0 * ((x as f32 / 3.0) + (z as f32 / 80.0)).sin()
+                                    + (z as f32 / 3.0).sin()
+                                    - ((z as f32 / 2.0) + (x as f32 / 4.0) + 1.0).sin()
+                                    + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin()
                             {
-                                if y as f32 >= (x as f32 + z as f32).sin() * 3.0 {
+                                if y >= 0 {
                                     data[i as usize][k as usize][j as usize].write(Box::new(Grass));
                                 } else {
                                     data[i as usize][k as usize][j as usize].write(Box::new(Stone));
