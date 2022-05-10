@@ -137,7 +137,7 @@ pub fn start() {
                     player_pos.y as _,
                     player_pos.z as _,
                 ));
-                glClearColor(0f32, 0f32, 0f32, 0f32);
+                glClearColor(0f32, 0f32, 0f32, 1f32);
                 glClear(gl33::GL_COLOR_BUFFER_BIT | gl33::GL_DEPTH_BUFFER_BIT);
                 let mat = glam::Mat4::perspective_lh(1.0, 800.0 / 600.0, 0.1, 1000.0)
                     * glam::Mat4::from_rotation_x(-player_rotation.x)

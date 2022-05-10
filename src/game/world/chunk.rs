@@ -2,8 +2,6 @@ use super::*;
 use block::{Air, Block, Grass, Stone};
 use meshdata::MeshData;
 use std::mem::{transmute, MaybeUninit};
-use std::sync::mpsc;
-use std::thread;
 
 pub struct Chunk {
     pub pos: BlockPos,
@@ -31,10 +29,12 @@ impl Chunk {
                             let x: i32 = px + i;
                             let y: i32 = py + k;
                             let z: i32 = pz + j;
-                            let level: i32 =
-                                ((x as f32 / 3.0 + (z as f32 / 5.0).sin()).sin() * 4.0) as i32;
-                            if y < level {
-                                if y >= 0 {
+                            if (x as f32 / 10.0).sin()
+                                + (y as f32 / 10.0 + (x as f32 / 3.0).sin()).sin()
+                                + (z as f32 / 10.0).sin()
+                                > 0.5
+                            {
+                                if y as f32 >= (x as f32 + z as f32).sin() * 3.0 {
                                     data[i as usize][k as usize][j as usize].write(Box::new(Grass));
                                 } else {
                                     data[i as usize][k as usize][j as usize].write(Box::new(Stone));
@@ -71,22 +71,10 @@ impl Chunk {
         }
     }
 
-    /// Starts updating the chunk in another thread, responds by sending a ChunkUpdateInfo
-    ///
-    /// **Return Value**: The previous model (if present)
-    pub fn start_update(sender: mpsc::Sender<ChunkUpdateInfo>, mut b: Box<Self>) -> Option<Model> {
-        let model = b.model.take();
-        thread::spawn(move || {
-            let mesh = b.update();
-            sender.send(ChunkUpdateInfo { mesh, chunk: b }).unwrap();
-        });
-        model
-    }
-
     /// Updates the chunk (generates a mesh)
     ///
     /// Takes a couple of milliseconds
-    fn update(&mut self) -> MeshData {
+    pub fn update(&mut self) -> MeshData {
         let mut data = MeshData::new();
         for i in 0..16 {
             for j in 0..16 {
