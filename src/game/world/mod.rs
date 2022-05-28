@@ -1,5 +1,5 @@
 use super::*;
-use block::Block;
+use block::{BlockID, BlockManager};
 use std::sync::mpsc;
 use std::thread;
 

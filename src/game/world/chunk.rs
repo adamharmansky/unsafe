@@ -1,11 +1,9 @@
 use super::*;
-use block::{Air, Block, Grass, Stone};
 use meshdata::MeshData;
-use std::mem::{transmute, MaybeUninit};
 
 pub struct Chunk {
     pub pos: BlockPos,
-    blocks: [[[Box<dyn Block>; 16]; 16]; 16],
+    blocks: [[[BlockID; 16]; 16]; 16],
     pub model: Option<Model>,
 }
 
@@ -13,7 +11,7 @@ unsafe impl Send for Chunk {}
 
 impl Chunk {
     /// Creates a new chunk, without a mesh
-    pub fn new(pos: BlockPos) -> Self {
+    pub fn new(pos: BlockPos, manager: &BlockManager) -> Self {
         let px = pos.x * 16;
         let py = pos.y * 16;
         let pz = pos.z * 16;
@@ -21,8 +19,7 @@ impl Chunk {
             pos,
             model: None,
             blocks: {
-                let mut data: [[[MaybeUninit<Box<dyn Block>>; 16]; 16]; 16] =
-                    unsafe { MaybeUninit::uninit().assume_init() };
+                let mut data: [[[BlockID; 16]; 16]; 16] = [[[0; 16]; 16]; 16];
                 for i in 0..16 {
                     for j in 0..16 {
                         for k in 0..16 {
@@ -37,33 +34,36 @@ impl Chunk {
                                     + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin()
                             {
                                 if y >= 0 {
-                                    data[i as usize][k as usize][j as usize].write(Box::new(Grass));
+                                    data[i as usize][k as usize][j as usize] =
+                                        manager[String::from("grass")];
                                 } else {
-                                    data[i as usize][k as usize][j as usize].write(Box::new(Stone));
+                                    data[i as usize][k as usize][j as usize] =
+                                        manager[String::from("stone")];
                                 }
                             } else {
-                                data[i as usize][k as usize][j as usize].write(Box::new(Air));
+                                data[i as usize][k as usize][j as usize] =
+                                    manager[String::from("air")];
                             }
                         }
                     }
                 }
-                unsafe { transmute::<_, [[[Box<dyn Block>; 16]; 16]; 16]>(data) }
+                data
             },
         }
     }
 
     /// Get a block, None if outside of chunk
-    pub fn get_block(&self, pos: BlockPos) -> Option<&Box<dyn Block>> {
+    pub fn get_block(&self, pos: BlockPos) -> Option<BlockID> {
         if pos.is_in_chunk() {
-            Some(&self.blocks[pos.x as usize][pos.y as usize][pos.z as usize])
+            Some(self.blocks[pos.x as usize][pos.y as usize][pos.z as usize])
         } else {
             None
         }
     }
 
     /// Set a block, panics if outside a chunk
-    pub fn set_block<T: 'static + Block + Clone>(&mut self, pos: BlockPos, b: &T) {
-        self.blocks[pos.x as usize][pos.y as usize][pos.z as usize] = Box::new(b.clone());
+    pub fn set_block(&mut self, pos: BlockPos, b: BlockID) {
+        self.blocks[pos.x as usize][pos.y as usize][pos.z as usize] = b;
     }
 
     /// Render if model present
@@ -76,48 +76,48 @@ impl Chunk {
     /// Updates the chunk (generates a mesh)
     ///
     /// Takes a couple of milliseconds
-    pub fn update(&mut self) -> MeshData {
+    pub fn update(&mut self, blocks: &BlockManager) -> MeshData {
         let mut data = MeshData::new();
         for i in 0..16 {
             for j in 0..16 {
                 for k in 0..16 {
-                    self.blocks[i][j][k].gen_mesh(
+                    (blocks[self.blocks[i][j][k]].gen_mesh)(
                         &mut data,
                         BlockPos::new(
                             self.pos.x * 16 + i as i32,
                             self.pos.y * 16 + j as i32,
                             self.pos.z * 16 + k as i32,
                         ),
-                        block::BlockSides {
+                        util::BlockSides {
                             top: if j == 15 {
                                 true
                             } else {
-                                !self.blocks[i][j + 1][k].is_full()
+                                !blocks[self.blocks[i][j + 1][k]].solid
                             },
                             bottom: if j == 0 {
                                 true
                             } else {
-                                !self.blocks[i][j - 1][k].is_full()
+                                !blocks[self.blocks[i][j - 1][k]].solid
                             },
                             left: if i == 0 {
                                 true
                             } else {
-                                !self.blocks[i - 1][j][k].is_full()
+                                !blocks[self.blocks[i - 1][j][k]].solid
                             },
                             right: if i == 15 {
                                 true
                             } else {
-                                !self.blocks[i + 1][j][k].is_full()
+                                !blocks[self.blocks[i + 1][j][k]].solid
                             },
                             front: if k == 15 {
                                 true
                             } else {
-                                !self.blocks[i][j][k + 1].is_full()
+                                !blocks[self.blocks[i][j][k + 1]].solid
                             },
                             back: if k == 0 {
                                 true
                             } else {
-                                !self.blocks[i][j][k - 1].is_full()
+                                !blocks[self.blocks[i][j][k - 1]].solid
                             },
                         },
                     );
