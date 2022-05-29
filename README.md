@@ -6,7 +6,7 @@ A minecraft clone made in Rust.
 
 there is no:
 
- * placement of blocks
+ * placement of blocks (okay that's being worked on rn)
  * world saving
  * actual gameplay
 
@@ -16,10 +16,10 @@ This is how it looks so far:
 
 ## How to run the game
 
-start in `media`, like this:
+It is very simple:
 
 ```
-(cd media && cargo run)
+cargo run
 ```
 
 good luck!
