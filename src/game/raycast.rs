@@ -6,6 +6,61 @@ pub struct RaycastResult {
     pub side: util::BlockSide,
 }
 
+fn get_side(p: Vec3) -> util::BlockSide {
+    println!("{:?}", p);
+    let sides = [
+        if p.x > p.y {
+            if p.x > -p.y {
+                util::BlockSide::Right
+            } else {
+                util::BlockSide::Bottom
+            }
+        } else {
+            if p.x > -p.y {
+                util::BlockSide::Top
+            } else {
+                util::BlockSide::Left
+            }
+        },
+        if p.z > p.x {
+            if p.z > -p.x {
+                util::BlockSide::Front
+            } else {
+                util::BlockSide::Left
+            }
+        } else {
+            if p.z > -p.x {
+                util::BlockSide::Right
+            } else {
+                util::BlockSide::Back
+            }
+        },
+        if p.y > p.z {
+            if p.y > -p.z {
+                util::BlockSide::Top
+            } else {
+                util::BlockSide::Back
+            }
+        } else {
+            if p.y > -p.z {
+                util::BlockSide::Front
+            } else {
+                util::BlockSide::Bottom
+            }
+        },
+    ];
+    println!("{:?}", sides);
+    for i in 0..3 {
+        for j in 0..i {
+            println!("{}, {}", i, j);
+            if sides[i] == sides[j] {
+                return sides[i];
+            }
+        }
+    }
+    panic!("Failed raycast!");
+}
+
 pub fn raycast(
     server: &mut ChunkServer,
     block_manager: &BlockManager,
@@ -32,19 +87,7 @@ pub fn raycast(
                 break Some(RaycastResult {
                     point,
                     block,
-                    side: if np.x > np.y {
-                        if np.x > -np.y {
-                            util::BlockSide::Right
-                        } else {
-                            util::BlockSide::Bottom
-                        }
-                    } else {
-                        if np.x > -np.y {
-                            util::BlockSide::Top
-                        } else {
-                            util::BlockSide::Left
-                        }
-                    },
+                    side: get_side(np),
                 });
             }
             blocks_parsed += 1;

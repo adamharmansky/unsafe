@@ -18,6 +18,7 @@ pub struct BlockSides {
 }
 
 #[allow(unused)]
+#[derive(PartialEq, Clone, Copy, Debug)]
 pub enum BlockSide {
     Top,
     Bottom,
@@ -58,8 +59,8 @@ impl BlockSide {
             BlockSide::Bottom => BlockPos::new(0, -1, 0),
             BlockSide::Left => BlockPos::new(-1, 0, 0),
             BlockSide::Right => BlockPos::new(1, 0, 0),
-            BlockSide::Front => BlockPos::new(1, 0, 0),
-            BlockSide::Back => BlockPos::new(-1, 0, 0),
+            BlockSide::Front => BlockPos::new(0, 0, 1),
+            BlockSide::Back => BlockPos::new(0, 0, -1),
         }
     }
 }
