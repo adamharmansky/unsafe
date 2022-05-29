@@ -6,20 +6,31 @@ A minecraft clone made in Rust.
 
 there is no:
 
- * placement of blocks (okay that's being worked on rn)
+ * ~~placement of blocks~~
  * world saving
  * actual gameplay
 
 This is how it looks so far:
 
 ![](1652199707609219709.png)
+![](1653807693120024417.png)
 
-## How to run the game
+## How to play the game
 
-It is very simple:
+Starting the game is very simple:
 
 ```
-cargo run
+cargo run -r
 ```
+
+Remember to use the release build (with the `-r` flag), otherwise it will be slow and laggy.
+
+Then you can use the following keys:
+
+ * WASD - movement
+ * space - move up
+ * ctrl - move down
+ * Q - destroy block
+ * E - place harold
 
 good luck!
