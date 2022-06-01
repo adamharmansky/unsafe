@@ -19,19 +19,7 @@ pub struct ChunkServer {
 
     /// how far we can see in any direction
     ///
-    /// # Example
-    ///
-    /// View distance 3 looks like this:
-    ///
-    /// ```
-    /// ###|###
-    /// ###|###
-    /// ###|###
-    /// ---.---
-    /// ###|###
-    /// ###|###
-    /// ###|###
-    /// ```
+    /// One side od the box is view_distance*2+1
     view_distance: i32,
 
     // Position of the camera (or anything else loading the chunks)

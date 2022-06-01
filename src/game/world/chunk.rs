@@ -1,54 +1,104 @@
 use super::*;
 use meshdata::MeshData;
+use std::fs::File;
+use std::io::BufReader;
+use std::io::BufWriter;
+use std::io::Read;
+use std::io::Write;
 
 pub struct Chunk {
     pub pos: BlockPos,
-    blocks: [[[BlockID; 16]; 16]; 16],
     pub model: Option<Model>,
+    blocks: [[[BlockID; 16]; 16]; 16],
+
+    filename: String,
 }
 
 unsafe impl Send for Chunk {}
 
+impl Drop for Chunk {
+    fn drop(&mut self) {
+        self.save().unwrap();
+    }
+}
+
 impl Chunk {
     /// Creates a new chunk, without a mesh
     pub fn new(pos: BlockPos, manager: &BlockManager) -> Self {
-        let px = pos.x * 16;
-        let py = pos.y * 16;
-        let pz = pos.z * 16;
-        Chunk {
+        let mut chunk = Chunk {
             pos,
             model: None,
-            blocks: {
-                let mut data: [[[BlockID; 16]; 16]; 16] = [[[0; 16]; 16]; 16];
-                for i in 0..16 {
-                    for j in 0..16 {
-                        for k in 0..16 {
-                            let x: i32 = px + i;
-                            let y: i32 = py + k;
-                            let z: i32 = pz + j;
-                            if (y as f32)
-                                < ((x as f32 / 2.0) - (z as f32 / 4.0)).sin()
-                                    - 2.0 * ((x as f32 / 3.0) + (z as f32 / 80.0)).sin()
-                                    + (z as f32 / 3.0).sin()
-                                    - ((z as f32 / 2.0) + (x as f32 / 4.0) + 1.0).sin()
-                                    + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin()
-                            {
-                                if y >= 0 {
-                                    data[i as usize][k as usize][j as usize] =
-                                        manager[String::from("grass")];
-                                } else {
-                                    data[i as usize][k as usize][j as usize] =
-                                        manager[String::from("stone")];
-                                }
-                            } else {
-                                data[i as usize][k as usize][j as usize] =
-                                    manager[String::from("air")];
-                            }
+            blocks: [[[0; 16]; 16]; 16],
+            filename: format!("save/{}-{}-{}.chunk", pos.x, pos.y, pos.z),
+        };
+        if let Err(_) = chunk.load() {
+            chunk.generate(manager);
+        }
+        chunk
+    }
+
+    pub fn load(&mut self) -> Result<(), std::io::Error> {
+        let file = File::open(&self.filename)?;
+        let mut file = BufReader::new(file);
+        for i in 0..16 {
+            for j in 0..16 {
+                for k in 0..16 {
+                    let mut buf: [u8; 1] = [0];
+                    file.read(&mut buf)?;
+                    self.blocks[i][j][k] = buf[0] as BlockID;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn save(&mut self) -> Result<(), std::io::Error> {
+        if let Ok(_) = std::fs::create_dir("save") {
+            println!("had to create the save directory!");
+        }
+        let file = File::create(&self.filename)?;
+        let mut file = BufWriter::new(file);
+        for i in 0..16 {
+            for j in 0..16 {
+                for k in 0..16 {
+                    let x = [self.blocks[i][j][k] as u8];
+                    file.write(&x)?;
+                }
+            }
+        }
+        Ok(())
+    }
+
+    pub fn generate(&mut self, manager: &BlockManager) {
+        let px = self.pos.x * 16;
+        let py = self.pos.y * 16;
+        let pz = self.pos.z * 16;
+        for i in 0..16 {
+            for j in 0..16 {
+                for k in 0..16 {
+                    let x: i32 = px + i;
+                    let y: i32 = py + k;
+                    let z: i32 = pz + j;
+                    if (y as f32)
+                        < ((x as f32 / 2.0) - (z as f32 / 4.0)).sin()
+                            - 2.0 * ((x as f32 / 3.0) + (z as f32 / 80.0)).sin()
+                            + (z as f32 / 3.0).sin()
+                            - ((z as f32 / 2.0) + (x as f32 / 4.0) + 1.0).sin()
+                            + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin()
+                    {
+                        if y >= 0 {
+                            self.blocks[i as usize][k as usize][j as usize] =
+                                manager[String::from("grass")];
+                        } else {
+                            self.blocks[i as usize][k as usize][j as usize] =
+                                manager[String::from("stone")];
                         }
+                    } else {
+                        self.blocks[i as usize][k as usize][j as usize] =
+                            manager[String::from("air")];
                     }
                 }
-                data
-            },
+            }
         }
     }
 

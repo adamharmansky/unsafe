@@ -1,14 +1,14 @@
 # unsafe {}
 
-A minecraft clone made in Rust.
+A minecraft clone made in Rust. The world is infinite in all three directions.
 
 ## HEAVY WIP
 
 there is no:
 
  * ~~placement of blocks~~
- * world saving
- * actual gameplay
+ * ~~world saving~~ (okay now there is some basic saving)
+ * actual gameplay (there is harold tho)
 
 This is how it looks so far:
 
@@ -33,4 +33,9 @@ Then you can use the following keys:
  * Q - destroy block
  * E - place harold
 
-good luck!
+## World saving
+
+The `save` directory will automatically be created. It contains a separate file
+for every chunk (yeah it's bad, I know).
+
+## Good luck!
