@@ -1,14 +1,38 @@
 mod block;
+mod input;
+mod player;
 mod raycast;
 mod util;
 mod world;
 
 use crate::graphics::*;
 use block::BlockManager;
+use input::InputState;
+use player::Player;
 use std::rc::Rc;
 use std::sync::Arc;
 use util::BlockPos;
 use world::*;
+
+pub struct Game {
+    pub input: InputState,
+    pub blocks: Arc<BlockManager>,
+    pub chunks: ChunkServer,
+}
+
+impl Game {
+    pub fn new() -> Self {
+        let manager = Arc::new(BlockManager::new());
+        let clone = manager.clone();
+        let mut game = Game {
+            input: InputState::new(),
+            blocks: manager,
+            chunks: ChunkServer::new(Rc::new(Texture::load("blocks.png")), clone),
+        };
+        game.chunks.update(BlockPos::new(0, 0, 0));
+        game
+    }
+}
 
 pub fn start() {
     let evloop = glutin::event_loop::EventLoop::new();
@@ -24,6 +48,8 @@ pub fn start() {
         .unwrap();
 
     let context = unsafe { context.make_current().unwrap() };
+
+    context.window().set_cursor_grab(true).unwrap();
 
     load_gl(&context);
     unsafe {
@@ -63,141 +89,52 @@ pub fn start() {
     let model_matrix = shader.create_uniform("model");
     shader.bind();
 
-    let block_texture = Rc::new(Texture::load("blocks.png"));
+    let mut game = Game::new();
 
-    let blocks = Arc::new(BlockManager::new());
-    let mut chunks = ChunkServer::new(Rc::clone(&block_texture), blocks.clone());
-    chunks.update(BlockPos::new(0, 0, 0));
+    let mut input_state = InputState::new();
 
-    let mut player_pos = Vec3::new(0.0, 10.0, 0.0);
-    let mut player_rotation = Vec2::new(0.0, 0.0);
-
-    let mut pressed_keys = std::collections::HashSet::<glutin::event::VirtualKeyCode>::new();
+    let mut player = Player::new(Vec3::new(0.0, 10.0, 0.0));
 
     evloop.run(move |ev, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Wait;
 
         match ev {
             glutin::event::Event::LoopDestroyed => return,
-            glutin::event::Event::WindowEvent { event, .. } => match event {
-                glutin::event::WindowEvent::CloseRequested => {
+            glutin::event::Event::WindowEvent { event, .. } => {
+                if input_state.handle_input(&event, &context) {
                     *control_flow = glutin::event_loop::ControlFlow::Exit;
                     return;
                 }
-                glutin::event::WindowEvent::KeyboardInput {
-                    device_id: _,
-                    input,
-                    is_synthetic: _,
-                } => {
-                    let code = input
-                        .virtual_keycode
-                        .unwrap_or_else(|| glutin::event::VirtualKeyCode::Space);
-                    let front = glam::Mat4::from_rotation_y(player_rotation.y)
-                        * glam::Mat4::from_rotation_x(player_rotation.x);
-                    match input.state {
-                        glutin::event::ElementState::Pressed => match code {
-                            glutin::event::VirtualKeyCode::E => {
-                                let pos = raycast::raycast(
-                                    &mut chunks,
-                                    &blocks,
-                                    player_pos,
-                                    front.transform_point3(Vec3::new(0.0, 0.0, 1.0)),
-                                );
-                                if let Some(res) = pos {
-                                    chunks.set_block(
-                                        res.block + res.side.to_pos(),
-                                        blocks[String::from("harold")],
-                                    );
-                                }
-                            }
-                            glutin::event::VirtualKeyCode::Q => {
-                                let pos = raycast::raycast(
-                                    &mut chunks,
-                                    &blocks,
-                                    player_pos,
-                                    front.transform_point3(Vec3::new(0.0, 0.0, 1.0)),
-                                );
-                                if let Some(res) = pos {
-                                    chunks.set_block(res.block, blocks[String::from("air")]);
-                                }
-                            }
-                            _ => {
-                                pressed_keys.insert(code);
-                            }
-                        },
-                        glutin::event::ElementState::Released => {
-                            pressed_keys.remove(&code);
-                        }
-                    }
-                }
-                glutin::event::WindowEvent::CursorMoved {
-                    device_id: _,
-                    position,
-                    ..
-                } => {
-                    let size = context.window().inner_size();
-                    let pos = (
-                        position.x as i32 - (size.width / 2) as i32,
-                        position.y as i32 - (size.height / 2) as i32,
-                    );
-                    player_rotation.x += pos.1 as f32 / 100.0;
-                    player_rotation.y += pos.0 as f32 / 100.0;
-                    context
-                        .window()
-                        .set_cursor_position(glutin::dpi::PhysicalPosition::new(
-                            size.width / 2,
-                            size.height / 2,
-                        ))
-                        .unwrap();
-                }
-                _ => (),
-            },
+                if let glutin::event::WindowEvent::CursorMoved { device_id: _, .. } = event {}
+            }
             glutin::event::Event::MainEventsCleared => unsafe {
-                let front = glam::Mat4::from_rotation_y(player_rotation.y)
-                    * glam::Mat4::from_rotation_x(player_rotation.x);
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::W) {
-                    player_pos += front.transform_point3(Vec3::new(0.0, 0.0, 0.2));
-                }
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::S) {
-                    player_pos -= front.transform_point3(Vec3::new(0.0, 0.0, 0.2));
-                }
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::A) {
-                    player_pos -= front.transform_point3(Vec3::new(0.2, 0.0, 0.0));
-                }
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::D) {
-                    player_pos += front.transform_point3(Vec3::new(0.2, 0.0, 0.0));
-                }
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::Space) {
-                    player_pos.y += 0.2;
-                }
-                if pressed_keys.contains(&glutin::event::VirtualKeyCode::LControl) {
-                    player_pos.y -= 0.2;
-                }
-                chunks.update(BlockPos::new(
-                    player_pos.x as _,
-                    player_pos.y as _,
-                    player_pos.z as _,
+                player.update(&input_state, &mut game);
+                game.chunks.update(BlockPos::new(
+                    player.pos.x as _,
+                    player.pos.y as _,
+                    player.pos.z as _,
                 ));
-                println!("{}", player_pos);
-                let b = chunks.get_block(BlockPos::new(
-                    player_pos.x.floor() as _,
-                    player_pos.y.floor() as _,
-                    player_pos.z.floor() as _,
+                println!("{}", player.pos);
+                let b = game.chunks.get_block(BlockPos::new(
+                    player.pos.x.floor() as _,
+                    player.pos.y.floor() as _,
+                    player.pos.z.floor() as _,
                 ));
                 if let Some(x) = b {
-                    println!("{}", blocks[x].name);
+                    println!("{}", game.blocks[x].name);
                 }
                 glClearColor(0.5, 0.8, 1.0, 1.0);
                 glClear(gl33::GL_COLOR_BUFFER_BIT | gl33::GL_DEPTH_BUFFER_BIT);
                 let mat = glam::Mat4::perspective_lh(1.0, 800.0 / 600.0, 0.1, 1000.0)
-                    * glam::Mat4::from_rotation_x(-player_rotation.x)
-                    * glam::Mat4::from_rotation_y(-player_rotation.y)
-                    * glam::Mat4::from_translation(-player_pos);
+                    * glam::Mat4::from_rotation_x(-player.rotation.x)
+                    * glam::Mat4::from_rotation_y(-player.rotation.y)
+                    * glam::Mat4::from_translation(-player.pos);
                 let model_mat = glam::Mat4::IDENTITY;
                 shader.set_uniform(view_matrix, shader::Uniform::Mat4(mat));
                 shader.set_uniform(model_matrix, shader::Uniform::Mat4(model_mat));
-                chunks.render();
+                game.chunks.render();
                 context.swap_buffers().unwrap();
+                input_state.reset();
             },
             _ => (),
         }
