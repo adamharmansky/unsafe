@@ -34,6 +34,10 @@ Then you can use the following keys:
  * ctrl - move down
  * Q - destroy block
  * E - place harold
+ * NUMBER KEYS - change block type
+
+ * Left mouse button - place blocks
+ * Right mouse button - destroy blocks
 
 ## World saving
 

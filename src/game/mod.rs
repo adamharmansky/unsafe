@@ -2,6 +2,7 @@ mod block;
 mod input;
 mod player;
 mod raycast;
+mod shaders;
 mod util;
 mod world;
 
@@ -59,41 +60,18 @@ pub fn start() {
         glBlendFunc(gl33::GL_SRC_ALPHA, gl33::GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    const VSCODE: &str = r#"#version 330 core
-        layout (location = 0) in vec3 pos;
-        layout (location = 1) in vec2 texCoords;
-        layout (location = 2) in vec3 normals;
-        uniform mat4 view;
-        uniform mat4 model;
-        out vec2 frag_texcoords;
-        out vec3 frag_normals;
-        void main() {
-            frag_texcoords = texCoords;
-            frag_normals = normalize(normals);
-            gl_Position = view * model * vec4(pos, 1.0);
-        }"#;
-    const FSCODE: &str = r#"#version 330 core
-        out vec4 final_color;
-        in vec2 frag_texcoords;
-        in vec3 frag_normals;
-        uniform sampler2D textur;
-        void main() {
-            // final_color = texture(textur, frag_texcoords);
-            float light = dot(frag_normals, normalize(vec3(1.0, 2.0, -1.0)));
-            light = light / 8.0 + 0.85;
-            final_color = texture(textur, frag_texcoords) * light;
-            final_color.w = 1.0;
-        }"#;
-    let shader = unsafe { Shader::new(VSCODE, FSCODE) };
-    let view_matrix = shader.create_uniform("view");
-    let model_matrix = shader.create_uniform("model");
-    shader.bind();
+    let game_shader = shaders::game_shader();
+    let view_matrix = game_shader.create_uniform("view");
+    let model_matrix = game_shader.create_uniform("model");
+
+    let ui_shader = shaders::ui_shader();
+    let ui_transform = ui_shader.create_uniform("view");
 
     let mut game = Game::new();
 
     let mut input_state = InputState::new();
 
-    let mut player = Player::new(Vec3::new(0.0, 10.0, 0.0));
+    let mut player = Player::new(Vec3::new(0.0, 10.0, 0.0), &game);
 
     evloop.run(move |ev, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Wait;
@@ -123,16 +101,35 @@ pub fn start() {
                 if let Some(x) = b {
                     println!("{}", game.blocks[x].name);
                 }
+                glEnable(gl33::GL_DEPTH_TEST);
+                game_shader.bind();
                 glClearColor(0.5, 0.8, 1.0, 1.0);
                 glClear(gl33::GL_COLOR_BUFFER_BIT | gl33::GL_DEPTH_BUFFER_BIT);
-                let mat = glam::Mat4::perspective_lh(1.0, 800.0 / 600.0, 0.1, 1000.0)
+                let aspect = {
+                    let size = context.window().inner_size();
+                    size.width as f32 / size.height as f32
+                };
+                let mat = glam::Mat4::perspective_lh(1.0, aspect, 0.1, 1000.0)
                     * glam::Mat4::from_rotation_x(-player.rotation.x)
                     * glam::Mat4::from_rotation_y(-player.rotation.y)
                     * glam::Mat4::from_translation(-player.pos);
                 let model_mat = glam::Mat4::IDENTITY;
-                shader.set_uniform(view_matrix, shader::Uniform::Mat4(mat));
-                shader.set_uniform(model_matrix, shader::Uniform::Mat4(model_mat));
+                game_shader.set_uniform(view_matrix, shader::Uniform::Mat4(mat));
+                game_shader.set_uniform(model_matrix, shader::Uniform::Mat4(model_mat));
                 game.chunks.render();
+
+                // glDisable(gl33::GL_DEPTH_TEST);
+                glClear(gl33::GL_DEPTH_BUFFER_BIT);
+                ui_shader.bind();
+                ui_shader.set_uniform(
+                    ui_transform,
+                    shader::Uniform::Mat4(glam::Mat4::from_scale(Vec3::new(
+                        1.0 / aspect,
+                        1.0,
+                        1.0,
+                    ))),
+                );
+                player.draw_hotbar();
                 context.swap_buffers().unwrap();
                 input_state.reset();
             },
