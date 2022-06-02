@@ -48,7 +48,7 @@ impl Player {
             if let Some(res) = pos {
                 game.chunks.set_block(
                     res.block + res.side.to_pos(),
-                    game.blocks[String::from("harold")],
+                    game.blocks[String::from("planks")],
                 );
             }
         }

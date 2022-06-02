@@ -64,6 +64,19 @@ impl BlockManager {
                     data,
                     Vec3::new(pos.x as _, pos.y as _, pos.z as _),
                     sides,
+                    Vec2::new(48.0 / 1024.0, 0.0),
+                    Vec2::new(64.0 / 1024.0, 16.0 / 1024.0),
+                )
+            },
+            solid: true,
+            name: "planks",
+        });
+        blocks.add_block(BlockType {
+            gen_mesh: &|data, pos, sides| {
+                append_cube::append_cube(
+                    data,
+                    Vec3::new(pos.x as _, pos.y as _, pos.z as _),
+                    sides,
                     Vec2::new(0.0, 16.0 / 1024.0),
                     Vec2::new(128.0 / 1024.0, 144.0 / 1024.0),
                 )
