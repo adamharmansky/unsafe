@@ -166,6 +166,30 @@ impl ChunkServer {
         }
     }
 
+    /// Makes sure that a chunk exists and is Some
+    fn ensure(&mut self, pos: BlockPos) {
+        match self
+            .chunks
+            .entry(pos)
+            .or_insert_with(|| {
+                let mut chunk = Box::new(Chunk::new(pos, &self.block_manager));
+                chunk.update(&self.block_manager);
+                Some(chunk)
+            })
+            .as_ref()
+        {
+            Some(_) => (),
+            None => loop {
+                let message = self.generator_output.recv().unwrap();
+                let p = message.chunk.pos;
+                self.handle_received_chunk(message);
+                if p == pos {
+                    break;
+                }
+            },
+        }
+    }
+
     /// Render everything, don't wait for chunks to generate
     pub fn render(&self) {
         self.texture.bind();
@@ -179,17 +203,22 @@ impl ChunkServer {
     #[allow(unused)]
     /// Get a block
     pub fn get_block(&mut self, pos: BlockPos) -> Option<BlockID> {
-        match self
-            .chunks
-            .get(&BlockPos::new(pos.x >> 4, pos.y >> 4, pos.z >> 4))
-            .expect("Block doesn't exist!")
-        {
-            Some(c) => Some(
-                c.get_block(BlockPos::new(pos.x & 15, pos.y & 15, pos.z & 15))
-                    .unwrap(),
-            ),
-            None => None,
-        }
+        let p = BlockPos::new(pos.x >> 4, pos.y >> 4, pos.z >> 4);
+        self.ensure(pos);
+        Some(self.chunks.get(&p)?.as_ref()?.get_block(BlockPos::new(
+            pos.x & 15,
+            pos.y & 15,
+            pos.z & 15,
+        ))?)
+        // {
+        //     Some(c) => Some(
+        //         c.get_block(BlockPos::new(pos.x & 15, pos.y & 15, pos.z & 15))
+        //             .unwrap(),
+        //     ),
+        //     None => {
+        //         self.chunks.insert()
+        //     },
+        // }
     }
 
     #[allow(unused)]

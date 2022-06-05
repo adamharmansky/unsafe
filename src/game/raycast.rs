@@ -6,59 +6,23 @@ pub struct RaycastResult {
     pub side: util::BlockSide,
 }
 
-fn get_side(p: Vec3) -> util::BlockSide {
-    println!("{:?}", p);
-    let sides = [
-        if p.x > p.y {
-            if p.x > -p.y {
-                util::BlockSide::Right
-            } else {
-                util::BlockSide::Bottom
-            }
-        } else {
-            if p.x > -p.y {
-                util::BlockSide::Top
-            } else {
-                util::BlockSide::Left
-            }
-        },
-        if p.z > p.x {
-            if p.z > -p.x {
-                util::BlockSide::Front
-            } else {
-                util::BlockSide::Left
-            }
-        } else {
-            if p.z > -p.x {
-                util::BlockSide::Right
-            } else {
-                util::BlockSide::Back
-            }
-        },
-        if p.y > p.z {
-            if p.y > -p.z {
-                util::BlockSide::Top
-            } else {
-                util::BlockSide::Back
-            }
-        } else {
-            if p.y > -p.z {
-                util::BlockSide::Front
-            } else {
-                util::BlockSide::Bottom
-            }
-        },
+fn get_ray_side(point: Vec3, direction: Vec3) -> (util::BlockSide, f32) {
+    let candidates = [
+        (util::BlockSide::Left, -point.x / direction.x),
+        (util::BlockSide::Right, (1.0 - point.x) / direction.x),
+        (util::BlockSide::Bottom, -point.y / direction.y),
+        (util::BlockSide::Top, (1.0 - point.y) / direction.y),
+        (util::BlockSide::Back, -point.z / direction.z),
+        (util::BlockSide::Front, (1.0 - point.z) / direction.z),
     ];
-    println!("{:?}", sides);
-    for i in 0..3 {
-        for j in 0..i {
-            println!("{}, {}", i, j);
-            if sides[i] == sides[j] {
-                return sides[i];
-            }
+    let mut smallest = (util::BlockSide::Bottom, std::f32::MAX);
+    for i in candidates {
+        if i.1 > 0.00 && i.1 < smallest.1 {
+            println!("{}", i.1);
+            smallest = i;
         }
     }
-    panic!("Failed raycast!");
+    smallest
 }
 
 pub fn raycast(
@@ -67,33 +31,28 @@ pub fn raycast(
     mut point: Vec3,
     direction: Vec3,
 ) -> Option<RaycastResult> {
-    let old_block = BlockPos::new(i32::MAX, i32::MAX, i32::MAX);
-    let mut blocks_parsed = 0;
-    loop {
-        point += direction / 10.0;
-        let block = BlockPos::new(
-            point.x.floor() as _,
-            point.y.floor() as _,
-            point.z.floor() as _,
+    let mut block = BlockPos::new(
+        point.x.floor() as i32 - (point.x == point.x.floor() && direction.x < 0.0) as i32,
+        point.y.floor() as i32 - (point.y == point.y.floor() && direction.y < 0.0) as i32,
+        point.z.floor() as i32 - (point.z == point.z.floor() && direction.z < 0.0) as i32,
+    );
+    println!("performing raycast from block {:?}", block);
+    for _ in 0..20 {
+        // point += direction / 10.0;
+        let side = get_ray_side(
+            point - Vec3::new(block.x as _, block.y as _, block.z as _),
+            direction,
         );
-        if block != old_block {
-            if block_manager[server.get_block(block).unwrap()].solid {
-                let center = Vec3::new(
-                    block.x as f32 + 0.5,
-                    block.y as f32 + 0.5,
-                    block.z as f32 + 0.5,
-                );
-                let np = point - center;
-                break Some(RaycastResult {
-                    point,
-                    block,
-                    side: get_side(np),
-                });
-            }
-            blocks_parsed += 1;
-            if blocks_parsed > 100 {
-                break None;
-            }
+        point += direction * side.1;
+        block += side.0;
+
+        if block_manager[server.get_block(block)?].solid {
+            return Some(RaycastResult {
+                point,
+                block,
+                side: -side.0,
+            });
         }
     }
+    None
 }

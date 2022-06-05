@@ -2,6 +2,7 @@ mod block;
 mod input;
 mod player;
 mod raycast;
+mod render_view;
 mod shaders;
 mod util;
 mod world;
@@ -10,6 +11,7 @@ use crate::graphics::*;
 use block::BlockManager;
 use input::InputState;
 use player::Player;
+use render_view::RenderView;
 use std::rc::Rc;
 use std::sync::Arc;
 use util::BlockPos;
@@ -60,18 +62,12 @@ pub fn start() {
         glBlendFunc(gl33::GL_SRC_ALPHA, gl33::GL_ONE_MINUS_SRC_ALPHA);
     }
 
-    let game_shader = shaders::game_shader();
-    let view_matrix = game_shader.create_uniform("view");
-    let model_matrix = game_shader.create_uniform("model");
-
-    let ui_shader = shaders::ui_shader();
-    let ui_transform = ui_shader.create_uniform("view");
+    let mut game_view = RenderView::new(shaders::game_shader());
+    let mut ui_view = RenderView::new(shaders::ui_shader());
 
     let mut game = Game::new();
-
-    let mut input_state = InputState::new();
-
     let mut player = Player::new(Vec3::new(0.0, 10.0, 0.0), &game);
+    let mut input_state = InputState::new();
 
     evloop.run(move |ev, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Wait;
@@ -87,22 +83,16 @@ pub fn start() {
             }
             glutin::event::Event::MainEventsCleared => unsafe {
                 player.update(&input_state, &mut game);
+
                 game.chunks.update(BlockPos::new(
                     player.pos.x as _,
                     player.pos.y as _,
                     player.pos.z as _,
                 ));
                 println!("{}", player.pos);
-                let b = game.chunks.get_block(BlockPos::new(
-                    player.pos.x.floor() as _,
-                    player.pos.y.floor() as _,
-                    player.pos.z.floor() as _,
-                ));
-                if let Some(x) = b {
-                    println!("{}", game.blocks[x].name);
-                }
+
                 glEnable(gl33::GL_DEPTH_TEST);
-                game_shader.bind();
+                game_view.bind();
                 glClearColor(0.5, 0.8, 1.0, 1.0);
                 glClear(gl33::GL_COLOR_BUFFER_BIT | gl33::GL_DEPTH_BUFFER_BIT);
                 let aspect = {
@@ -113,22 +103,15 @@ pub fn start() {
                     * glam::Mat4::from_rotation_x(-player.rotation.x)
                     * glam::Mat4::from_rotation_y(-player.rotation.y)
                     * glam::Mat4::from_translation(-player.pos);
-                let model_mat = glam::Mat4::IDENTITY;
-                game_shader.set_uniform(view_matrix, shader::Uniform::Mat4(mat));
-                game_shader.set_uniform(model_matrix, shader::Uniform::Mat4(model_mat));
+                game_view.set_view(mat);
+                game_view.set_model(glam::Mat4::IDENTITY);
                 game.chunks.render();
 
-                // glDisable(gl33::GL_DEPTH_TEST);
+                // now, render the UI
                 glClear(gl33::GL_DEPTH_BUFFER_BIT);
-                ui_shader.bind();
-                ui_shader.set_uniform(
-                    ui_transform,
-                    shader::Uniform::Mat4(glam::Mat4::from_scale(Vec3::new(
-                        1.0 / aspect,
-                        1.0,
-                        1.0,
-                    ))),
-                );
+                ui_view.bind();
+                ui_view.set_view(glam::Mat4::from_scale(Vec3::new(1.0 / aspect, 1.0, 1.0)));
+                ui_view.set_model(glam::Mat4::IDENTITY);
                 player.draw_hotbar();
                 context.swap_buffers().unwrap();
                 input_state.reset();

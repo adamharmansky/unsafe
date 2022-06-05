@@ -1,6 +1,6 @@
 use glam::*;
 
-#[derive(Hash, PartialEq, Eq, Clone, Copy)]
+#[derive(Hash, PartialEq, Eq, Clone, Copy, Debug)]
 pub struct BlockPos {
     pub x: i32,
     pub y: i32,
@@ -39,6 +39,28 @@ impl BlockPos {
     }
 }
 
+impl std::ops::Add<BlockSide> for BlockPos {
+    type Output = BlockPos;
+
+    fn add(mut self, rhs: BlockSide) -> Self::Output {
+        match rhs {
+            BlockSide::Top => self.y += 1,
+            BlockSide::Bottom => self.y -= 1,
+            BlockSide::Left => self.x -= 1,
+            BlockSide::Right => self.x += 1,
+            BlockSide::Front => self.z += 1,
+            BlockSide::Back => self.z -= 1,
+        };
+        self
+    }
+}
+
+impl std::ops::AddAssign<BlockSide> for BlockPos {
+    fn add_assign(&mut self, rhs: BlockSide) {
+        *self = *self + rhs;
+    }
+}
+
 impl std::ops::Add<BlockPos> for BlockPos {
     type Output = BlockPos;
 
@@ -61,6 +83,21 @@ impl BlockSide {
             BlockSide::Right => BlockPos::new(1, 0, 0),
             BlockSide::Front => BlockPos::new(0, 0, 1),
             BlockSide::Back => BlockPos::new(0, 0, -1),
+        }
+    }
+}
+
+impl std::ops::Neg for BlockSide {
+    type Output = Self;
+
+    fn neg(self) -> Self::Output {
+        match self {
+            BlockSide::Top => BlockSide::Bottom,
+            BlockSide::Bottom => BlockSide::Top,
+            BlockSide::Left => BlockSide::Right,
+            BlockSide::Right => BlockSide::Left,
+            BlockSide::Front => BlockSide::Back,
+            BlockSide::Back => BlockSide::Front,
         }
     }
 }

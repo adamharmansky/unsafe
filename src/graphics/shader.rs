@@ -14,13 +14,13 @@ pub struct Shader {
 }
 
 impl Shader {
-    pub unsafe fn new(vscode: &str, fscode: &str) -> Self {
+    pub unsafe fn new(vscode: &[u8], fscode: &[u8]) -> Self {
         let vs = glCreateShader(gl33::GL_VERTEX_SHADER);
         assert_ne!(vs, 0);
         glShaderSource(
             vs,
             1,
-            &(vscode.as_bytes().as_ptr().cast()),
+            &(vscode.as_ptr().cast()),
             &(vscode.len().try_into().unwrap()),
         );
         glCompileShader(vs);
@@ -39,7 +39,7 @@ impl Shader {
         glShaderSource(
             fs,
             1,
-            &(fscode.as_bytes().as_ptr().cast()),
+            &(fscode.as_ptr().cast()),
             &(fscode.len().try_into().unwrap()),
         );
         glCompileShader(fs);

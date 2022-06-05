@@ -9,6 +9,7 @@ use glutin::event::VirtualKeyCode;
 pub struct Player {
     pub pos: Vec3,
     pub rotation: Vec2,
+    velocity: Vec3,
 
     selected_block: usize,
 
@@ -55,6 +56,7 @@ impl Player {
         Player {
             pos,
             rotation: Vec2::new(0.0, 0.0),
+            velocity: Vec3::new(0.0, 0.0, 0.0),
             selected_block: 3,
             hotbar,
             item_models,
@@ -68,24 +70,47 @@ impl Player {
     pub fn update(&mut self, input: &InputState, game: &mut Game) {
         let front = glam::Mat4::from_rotation_y(self.rotation.y)
             * glam::Mat4::from_rotation_x(self.rotation.x);
+        let mut motion = Vec3::new(0.0, 0.0, 0.0);
         if input.keys_down.contains(&VirtualKeyCode::W) {
-            self.pos += front.transform_point3(Vec3::new(0.0, 0.0, 0.2));
+            motion += front.transform_point3(Vec3::new(0.0, 0.0, 1.0));
         }
         if input.keys_down.contains(&VirtualKeyCode::S) {
-            self.pos -= front.transform_point3(Vec3::new(0.0, 0.0, 0.2));
+            motion -= front.transform_point3(Vec3::new(0.0, 0.0, 1.0));
         }
         if input.keys_down.contains(&VirtualKeyCode::A) {
-            self.pos -= front.transform_point3(Vec3::new(0.2, 0.0, 0.0));
+            motion -= front.transform_point3(Vec3::new(1.0, 0.0, 0.0));
         }
         if input.keys_down.contains(&VirtualKeyCode::D) {
-            self.pos += front.transform_point3(Vec3::new(0.2, 0.0, 0.0));
+            motion += front.transform_point3(Vec3::new(1.0, 0.0, 0.0));
         }
-        if input.keys_down.contains(&VirtualKeyCode::Space) {
-            self.pos.y += 0.2;
+        motion.y = 0.0;
+        motion = motion.normalize_or_zero() * 0.08;
+        self.pos += motion;
+        // if input.keys_down.contains(&VirtualKeyCode::LControl) {
+        //     self.pos.y -= 0.2;
+        // }
+
+        let mut on_ground = false;
+
+        self.velocity.y -= 0.03;
+        self.pos += self.velocity;
+        if let Some(c) = raycast::raycast(
+            &mut game.chunks,
+            &game.blocks,
+            self.pos,
+            Vec3::new(0.0, -1.0, 0.0),
+        ) {
+            if self.pos.y - c.point.y <= 2.0 {
+                on_ground = true;
+                self.pos.y = c.point.y + 2.0;
+                self.velocity.y = 0.0;
+            }
         }
-        if input.keys_down.contains(&VirtualKeyCode::LControl) {
-            self.pos.y -= 0.2;
+
+        if on_ground && input.keys_pressed.contains(&VirtualKeyCode::Space) {
+            self.velocity.y += 0.3;
         }
+
         self.rotation.x += input.cursor.y / 100.0;
         self.rotation.y += input.cursor.x / 100.0;
         if input.keys_down.contains(&VirtualKeyCode::Key1) {
