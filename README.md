@@ -14,8 +14,7 @@ there is no:
 
 This is how it looks so far:
 
-![](1652199707609219709.png)
-![](1653807693120024417.png)
+![](1654457680322443035.png)
 
 ## How to play the game
 
