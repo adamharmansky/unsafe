@@ -18,7 +18,6 @@ fn get_ray_side(point: Vec3, direction: Vec3) -> (util::BlockSide, f32) {
     let mut smallest = (util::BlockSide::Bottom, std::f32::MAX);
     for i in candidates {
         if i.1 > 0.00 && i.1 < smallest.1 {
-            println!("{}", i.1);
             smallest = i;
         }
     }
@@ -36,7 +35,6 @@ pub fn raycast(
         point.y.floor() as i32 - (point.y == point.y.floor() && direction.y < 0.0) as i32,
         point.z.floor() as i32 - (point.z == point.z.floor() && direction.z < 0.0) as i32,
     );
-    println!("performing raycast from block {:?}", block);
     for _ in 0..20 {
         // point += direction / 10.0;
         let side = get_ray_side(
