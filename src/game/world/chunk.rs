@@ -79,23 +79,24 @@ impl Chunk {
                     let x: i32 = px + i;
                     let y: i32 = py + k;
                     let z: i32 = pz + j;
-                    if (y as f32)
-                        < ((x as f32 / 2.0) - (z as f32 / 4.0)).sin()
-                            - 2.0 * ((x as f32 / 3.0) + (z as f32 / 80.0)).sin()
-                            + (z as f32 / 3.0).sin()
-                            - ((z as f32 / 2.0) + (x as f32 / 4.0) + 1.0).sin()
-                            + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin()
-                    {
-                        if y >= 0 {
-                            self.blocks[i as usize][k as usize][j as usize] =
-                                manager[String::from("grass")];
-                        } else {
-                            self.blocks[i as usize][k as usize][j as usize] =
-                                manager[String::from("stone")];
-                        }
-                    } else {
+                    let h = ((x as f32 / 2.0) - (z as f32 / 4.0)).sin()
+                        - 2.0 * ((x as f32 / 3.0) + (z as f32 / 80.0)).sin()
+                        + (z as f32 / 3.0).sin()
+                        - ((z as f32 / 2.0) + (x as f32 / 4.0) + 1.0).sin()
+                        + 6.0 * ((x as f32 / 12.0).sin() + (z as f32 / 9.0).cos()).sin();
+                    let hd = y - (h.floor() as i32);
+                    if hd > 0 {
                         self.blocks[i as usize][k as usize][j as usize] =
                             manager[String::from("air")];
+                    } else if hd == 0 {
+                        self.blocks[i as usize][k as usize][j as usize] =
+                            manager[String::from("grass")];
+                    } else if hd > -5 {
+                        self.blocks[i as usize][k as usize][j as usize] =
+                            manager[String::from("dirt")];
+                    } else {
+                        self.blocks[i as usize][k as usize][j as usize] =
+                            manager[String::from("stone")];
                     }
                 }
             }

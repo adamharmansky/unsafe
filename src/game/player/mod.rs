@@ -1,10 +1,9 @@
-use crate::game::util::BlockSides;
-
 use super::*;
-
+use crate::game::util::BlockSides;
 use block::BlockID;
-
 use glutin::event::VirtualKeyCode;
+
+mod collisions;
 
 pub struct Player {
     pub pos: Vec3,
@@ -19,13 +18,16 @@ pub struct Player {
 
 impl Player {
     pub const HEIGHT: f32 = 1.8;
+    pub const RADIUS: f32 = 0.2;
     pub const CAMERA_HEIGHT: f32 = 1.6;
-    const SPEED: f32 = 0.08;
-    const JUMP_AMOUNT: f32 = 0.25;
+    const SPEED: f32 = 0.05;
+    const FRICTION: f32 = 0.7;
+    const JUMP_AMOUNT: f32 = 0.2;
     pub fn new(pos: Vec3, game: &Game) -> Self {
         let hotbar = vec![
             game.blocks[String::from("stone")],
             game.blocks[String::from("grass")],
+            game.blocks[String::from("dirt")],
             game.blocks[String::from("planks")],
             game.blocks[String::from("harold")],
         ];
@@ -71,63 +73,6 @@ impl Player {
         self.item_models[self.selected_block as usize].render();
     }
 
-    fn check_collisions(&mut self, game: &mut Game) {
-        for i in 0..2 {
-            if let Some(x) = game.chunks.get_block(BlockPos::new(
-                (self.pos.x + 0.2).floor() as _,
-                self.pos.y.floor() as i32 + i,
-                self.pos.z.floor() as _,
-            )) {
-                if game.blocks[x].solid {
-                    self.pos.x = (self.pos.x + 0.2).floor() - 0.2;
-                    self.velocity.x = 0.0;
-                }
-            }
-            if let Some(x) = game.chunks.get_block(BlockPos::new(
-                (self.pos.x - 0.2).floor() as _,
-                self.pos.y.floor() as i32 + i,
-                self.pos.z.floor() as _,
-            )) {
-                if game.blocks[x].solid {
-                    self.pos.x = (self.pos.x - 0.2).ceil() + 0.2;
-                    self.velocity.x = 0.0;
-                }
-            }
-        }
-        for i in 0..2 {
-            if let Some(x) = game.chunks.get_block(BlockPos::new(
-                self.pos.x.floor() as _,
-                self.pos.y.floor() as i32 + i,
-                (self.pos.z - 0.2).floor() as _,
-            )) {
-                if game.blocks[x].solid {
-                    self.pos.z = (self.pos.z - 0.2).ceil() + 0.2;
-                    self.velocity.z = 0.0;
-                }
-            }
-            if let Some(x) = game.chunks.get_block(BlockPos::new(
-                self.pos.x.floor() as _,
-                self.pos.y.floor() as i32 + i,
-                (self.pos.z + 0.2).floor() as _,
-            )) {
-                if game.blocks[x].solid {
-                    self.pos.z = (self.pos.z + 0.2).floor() - 0.2;
-                    self.velocity.z = 0.0;
-                }
-            }
-        }
-        if let Some(x) = game.chunks.get_block(BlockPos::new(
-            self.pos.x.floor() as _,
-            (self.pos.y + Self::HEIGHT).floor() as i32,
-            self.pos.z.floor() as _,
-        )) {
-            if game.blocks[x].solid {
-                self.pos.y = (self.pos.y + Self::HEIGHT).floor() - Self::HEIGHT;
-                self.velocity.y = 0.0;
-            }
-        }
-    }
-
     pub fn update(&mut self, input: &InputState, game: &mut Game) {
         let front = glam::Mat4::from_rotation_y(self.rotation.y)
             * glam::Mat4::from_rotation_x(self.rotation.x);
@@ -146,40 +91,65 @@ impl Player {
         }
         motion.y = 0.0;
         motion = motion.normalize_or_zero() * Self::SPEED;
-        self.pos += motion;
+        self.velocity += motion;
         // if input.keys_down.contains(&VirtualKeyCode::LControl) {
         //     self.pos.y -= 0.2;
         // }
 
-        let mut on_ground = false;
+        let collisions = collisions::check_collisions(self, game);
+        // println!("{:?}", collisions);
+        self.velocity.y += Game::GRAVITY;
 
-        self.velocity.y -= 0.02;
-
-        if let Some(c) = raycast::raycast(
-            &mut game.chunks,
-            &game.blocks,
-            self.pos + Vec3::new(0.0, 0.5, 0.0),
-            Vec3::new(0.0, -1.0, 0.0),
-        ) {
-            let h = self.pos.y - c.point.y;
-            if h <= -self.velocity.y {
-                on_ground = true;
-                self.pos.y = c.point.y;
+        if let Some(x) = collisions.left {
+            if self.velocity.x >= x.0 {
+                self.pos.x = x.1;
+                self.velocity.x = 0.0;
+            }
+        }
+        if let Some(x) = collisions.right {
+            if self.velocity.x <= -x.0 {
+                self.pos.x = x.1;
+                self.velocity.x = 0.0;
+            }
+        }
+        if let Some(y) = collisions.bottom {
+            if self.velocity.y >= y.0 {
+                self.pos.y = y.1;
                 self.velocity.y = 0.0;
             }
         }
-        if on_ground && self.velocity.y < 0.0 {
-            self.pos.x += self.velocity.x;
-            self.pos.z += self.velocity.z;
-        } else {
-            self.pos += self.velocity;
-        };
-
-        self.check_collisions(game);
-
-        if on_ground && input.keys_down.contains(&VirtualKeyCode::Space) {
-            self.velocity.y += Self::JUMP_AMOUNT;
+        if let Some(y) = collisions.top {
+            if self.velocity.y <= -y.0 {
+                self.pos.y = y.1;
+                self.velocity.y = 0.0;
+            }
         }
+        if let Some(z) = collisions.back {
+            if self.velocity.z >= z.0 {
+                self.pos.z = z.1;
+                self.velocity.z = 0.0;
+            }
+        }
+        if let Some(z) = collisions.front {
+            if self.velocity.z <= -z.0 {
+                self.pos.z = z.1;
+                self.velocity.z = 0.0;
+            }
+        }
+
+        self.pos += self.velocity;
+
+        // if on ground
+        if let Some(x) = collisions.top {
+            if x.1 == self.pos.y {
+                if input.keys_down.contains(&VirtualKeyCode::Space) {
+                    self.velocity.y += Self::JUMP_AMOUNT;
+                }
+            }
+        }
+
+        self.velocity.x *= Self::FRICTION;
+        self.velocity.z *= Self::FRICTION;
 
         self.rotation.x += input.cursor.y / 100.0;
         self.rotation.y += input.cursor.x / 100.0;
@@ -195,6 +165,9 @@ impl Player {
         }
         if input.keys_pressed.contains(&VirtualKeyCode::Key4) {
             self.selected_block = 3;
+        }
+        if input.keys_pressed.contains(&VirtualKeyCode::Key5) {
+            self.selected_block = 4;
         }
 
         if input.keys_pressed.contains(&VirtualKeyCode::E) {

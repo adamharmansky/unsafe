@@ -1,5 +1,6 @@
 use super::*;
 use std::collections::HashMap;
+use util::BlockCollider;
 
 mod append_cube;
 
@@ -8,7 +9,8 @@ use util::BlockSides;
 pub type BlockID = i32;
 
 pub struct BlockType {
-    pub gen_mesh: &'static (dyn Fn(&mut MeshData, BlockPos, BlockSides) + Sync),
+    pub gen_mesh: &'static (dyn Fn(&mut MeshData, BlockPos, BlockSides<bool>) + Sync),
+    pub collider: &'static [BlockCollider],
     pub solid: bool,
     pub name: &'static str,
 }
@@ -21,6 +23,15 @@ pub struct BlockManager {
 unsafe impl Sync for BlockType {}
 unsafe impl Sync for BlockManager {}
 
+const CUBE_COLLIDER: BlockCollider = BlockCollider {
+    x: 0.0,
+    y: 0.0,
+    z: 0.0,
+    w: 1.0,
+    h: 1.0,
+    d: 1.0,
+};
+
 impl BlockManager {
     pub fn new() -> Self {
         let mut blocks = BlockManager {
@@ -29,6 +40,7 @@ impl BlockManager {
         };
         blocks.add_block(BlockType {
             gen_mesh: &|_, _, _| {},
+            collider: &[],
             solid: false,
             name: "air",
         });
@@ -42,19 +54,25 @@ impl BlockManager {
                     Vec2::new(32.0 / 1024.0, 16.0 / 1024.0),
                 )
             },
+            collider: &[CUBE_COLLIDER],
             solid: true,
             name: "stone",
         });
         blocks.add_block(BlockType {
             gen_mesh: &|data, pos, sides| {
-                append_cube::append_cube(
+                append_cube::append_cube_sided(
                     data,
                     Vec3::new(pos.x as _, pos.y as _, pos.z as _),
                     sides,
+                    Vec2::new(80.0 / 1024.0, 0.0),
+                    Vec2::new(96.0 / 1024.0, 16.0 / 1024.0),
                     Vec2::new(32.0 / 1024.0, 0.0),
                     Vec2::new(48.0 / 1024.0, 16.0 / 1024.0),
+                    Vec2::new(64.0 / 1024.0, 0.0),
+                    Vec2::new(80.0 / 1024.0, 16.0 / 1024.0),
                 )
             },
+            collider: &[CUBE_COLLIDER],
             solid: true,
             name: "grass",
         });
@@ -68,6 +86,7 @@ impl BlockManager {
                     Vec2::new(64.0 / 1024.0, 16.0 / 1024.0),
                 )
             },
+            collider: &[CUBE_COLLIDER],
             solid: true,
             name: "planks",
         });
@@ -81,8 +100,23 @@ impl BlockManager {
                     Vec2::new(128.0 / 1024.0, 144.0 / 1024.0),
                 )
             },
+            collider: &[CUBE_COLLIDER],
             solid: true,
             name: "harold",
+        });
+        blocks.add_block(BlockType {
+            gen_mesh: &|data, pos, sides| {
+                append_cube::append_cube(
+                    data,
+                    Vec3::new(pos.x as _, pos.y as _, pos.z as _),
+                    sides,
+                    Vec2::new(64.0 / 1024.0, 0.0),
+                    Vec2::new(80.0 / 1024.0, 16.0 / 1024.0),
+                )
+            },
+            collider: &[CUBE_COLLIDER],
+            solid: true,
+            name: "dirt",
         });
         blocks
     }

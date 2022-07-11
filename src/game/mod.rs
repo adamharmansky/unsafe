@@ -24,6 +24,7 @@ pub struct Game {
 }
 
 impl Game {
+    pub const GRAVITY: f32 = -0.01;
     pub fn new() -> Self {
         let manager = Arc::new(BlockManager::new());
         let clone = manager.clone();
@@ -52,7 +53,9 @@ pub fn start() {
 
     let context = unsafe { context.make_current().unwrap() };
 
-    context.window().set_cursor_grab(true).unwrap();
+    if let Err(_) = context.window().set_cursor_grab(true) {
+        println!("Cannot grab cursor! The cursor will be visible in the center of the screen.");
+    }
 
     load_gl(&context);
     unsafe {
@@ -68,6 +71,9 @@ pub fn start() {
     let mut game = Game::new();
     let mut player = Player::new(Vec3::new(0.0, 10.0, 0.0), &game);
     let mut input_state = InputState::new();
+
+    let mut frames_since_message = 0;
+    let mut last_time = std::time::Instant::now();
 
     evloop.run(move |ev, _, control_flow| {
         *control_flow = glutin::event_loop::ControlFlow::Wait;
@@ -89,7 +95,6 @@ pub fn start() {
                     player.pos.y as _,
                     player.pos.z as _,
                 ));
-                println!("{}", player.pos);
 
                 glEnable(gl33::GL_DEPTH_TEST);
                 game_view.bind();
@@ -117,6 +122,21 @@ pub fn start() {
                 player.draw_hotbar();
                 context.swap_buffers().unwrap();
                 input_state.reset();
+
+                // Debug message
+                if frames_since_message >= 60 {
+                    let now = std::time::Instant::now();
+                    println!(
+                        "{:.2} FPS\t position: {} {} {}",
+                        60000.0 / now.duration_since(last_time).as_millis() as f32,
+                        player.pos.x,
+                        player.pos.y,
+                        player.pos.z
+                    );
+                    last_time = now;
+                    frames_since_message = 0;
+                }
+                frames_since_message += 1;
             },
             _ => (),
         }

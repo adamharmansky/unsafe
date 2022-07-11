@@ -8,17 +8,18 @@ pub struct BlockPos {
 }
 
 #[allow(unused)]
-pub struct BlockSides {
-    pub top: bool,
-    pub bottom: bool,
-    pub left: bool,
-    pub right: bool,
-    pub front: bool,
-    pub back: bool,
+#[derive(Debug)]
+pub struct BlockSides<T> {
+    pub top: T,
+    pub bottom: T,
+    pub left: T,
+    pub right: T,
+    pub front: T,
+    pub back: T,
 }
 
 #[allow(unused)]
-#[derive(PartialEq, Clone, Copy, Debug)]
+#[derive(PartialEq, Clone, Copy, Debug, Hash, Eq)]
 pub enum BlockSide {
     Top,
     Bottom,
@@ -26,6 +27,32 @@ pub enum BlockSide {
     Right,
     Front,
     Back,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct BlockCollider {
+    pub x: f32,
+    pub y: f32,
+    pub z: f32,
+    pub w: f32,
+    pub h: f32,
+    pub d: f32,
+}
+
+impl<T> From<std::collections::HashMap<BlockSide, T>> for BlockSides<Option<T>>
+where
+    T: Copy,
+{
+    fn from(x: std::collections::HashMap<BlockSide, T>) -> Self {
+        Self {
+            top: x.get(&BlockSide::Top).copied(),
+            bottom: x.get(&BlockSide::Bottom).copied(),
+            left: x.get(&BlockSide::Left).copied(),
+            right: x.get(&BlockSide::Right).copied(),
+            front: x.get(&BlockSide::Front).copied(),
+            back: x.get(&BlockSide::Back).copied(),
+        }
+    }
 }
 
 impl BlockPos {
