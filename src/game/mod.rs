@@ -26,7 +26,7 @@ pub struct Game {
 impl Game {
     pub const GRAVITY: f32 = -0.01;
     pub fn new() -> Self {
-        let manager = Arc::new(BlockManager::new());
+        let manager = Arc::new(BlockManager::new("blocks.json"));
         let clone = manager.clone();
         let mut game = Game {
             input: InputState::new(),
@@ -42,7 +42,7 @@ pub fn start() {
     let evloop = glutin::event_loop::EventLoop::new();
     let builder = glutin::window::WindowBuilder::new()
         .with_title("Bogos binted")
-        .with_inner_size(glutin::dpi::LogicalSize::new(800f32, 600f32))
+        .with_inner_size(glutin::dpi::PhysicalSize::new(800, 600))
         .with_resizable(false);
 
     let context = glutin::ContextBuilder::new()
@@ -53,9 +53,9 @@ pub fn start() {
 
     let context = unsafe { context.make_current().unwrap() };
 
-    if let Err(_) = context.window().set_cursor_grab(true) {
-        println!("Cannot grab cursor! The cursor will be visible in the center of the screen.");
-    }
+    // if let Err(e) = context.window().set_cursor_grab(true) {
+    //     println!("Cannot grab cursor! The cursor will be visible in the center of the screen. Reason: {}", e);
+    // }
 
     load_gl(&context);
     unsafe {

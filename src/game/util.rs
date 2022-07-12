@@ -39,6 +39,14 @@ pub struct BlockCollider {
     pub d: f32,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub struct TexRect {
+    pub left: f32,
+    pub top: f32,
+    pub right: f32,
+    pub bottom: f32,
+}
+
 impl<T> From<std::collections::HashMap<BlockSide, T>> for BlockSides<Option<T>>
 where
     T: Copy,
@@ -97,6 +105,12 @@ impl std::ops::Add<BlockPos> for BlockPos {
             y: self.y + rhs.y,
             z: self.z + rhs.z,
         }
+    }
+}
+
+impl Into<glam::Vec3> for BlockPos {
+    fn into(self) -> glam::Vec3 {
+        glam::Vec3::new(self.x as _, self.y as _, self.z as _)
     }
 }
 

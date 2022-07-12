@@ -30,6 +30,7 @@ impl Player {
             game.blocks[String::from("dirt")],
             game.blocks[String::from("planks")],
             game.blocks[String::from("harold")],
+            game.blocks[String::from("log")],
         ];
         let item_mat = Mat4::from_translation(Vec3::new(-0.8, 0.8, 0.0))
             * Mat4::from_scale(Vec3::new(0.15, 0.15, 0.15))
@@ -168,6 +169,9 @@ impl Player {
         }
         if input.keys_pressed.contains(&VirtualKeyCode::Key5) {
             self.selected_block = 4;
+        }
+        if input.keys_pressed.contains(&VirtualKeyCode::Key6) {
+            self.selected_block = 5;
         }
 
         if input.keys_pressed.contains(&VirtualKeyCode::E) {

@@ -1,12 +1,7 @@
 use super::*;
+use util::TexRect;
 
-pub fn append_cube(
-    data: &mut MeshData,
-    pos: Vec3,
-    sides: BlockSides<bool>,
-    top_left: Vec2,
-    bottom_right: Vec2,
-) {
+pub fn append_cube(data: &mut MeshData, pos: Vec3, sides: BlockSides<bool>, texture: TexRect) {
     let mut size: i32 = data.vertices.len() as _;
     if sides.back {
         data.vertices.push((pos.x + 0.0, pos.y + 0.0, pos.z + 0.0));
@@ -15,10 +10,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 0.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
-        data.texcoords.push((top_left.x, top_left.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.right, texture.bottom));
+        data.texcoords.push((texture.left, texture.top));
+        data.texcoords.push((texture.right, texture.top));
         for _ in 0..4 {
             data.normals.push((0.0, 0.0, -1.0));
         }
@@ -31,10 +26,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 0.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((top_left.x, top_left.y));
+        data.texcoords.push((texture.right, texture.bottom));
+        data.texcoords.push((texture.right, texture.top));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.left, texture.top));
         for _ in 0..4 {
             data.normals.push((-1.0, 0.0, 0.0));
         }
@@ -48,10 +43,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
-        data.texcoords.push((top_left.x, top_left.y));
+        data.texcoords.push((texture.right, texture.bottom));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.right, texture.top));
+        data.texcoords.push((texture.left, texture.top));
         for _ in 0..4 {
             data.normals.push((0.0, 0.0, 1.0));
         }
@@ -64,10 +59,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((top_left.x, top_left.y));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.left, texture.top));
+        data.texcoords.push((texture.right, texture.bottom));
+        data.texcoords.push((texture.right, texture.top));
         for _ in 0..4 {
             data.normals.push((1.0, 0.0, 0.0));
         }
@@ -80,10 +75,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((top_left.x, top_left.y));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
+        data.texcoords.push((texture.left, texture.top));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.right, texture.top));
+        data.texcoords.push((texture.right, texture.bottom));
         for _ in 0..4 {
             data.normals.push((0.0, 1.0, 0.0));
         }
@@ -96,10 +91,10 @@ pub fn append_cube(
         data.vertices.push((pos.x + 1.0, pos.y + 0.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((top_left.x, top_left.y));
-        data.texcoords.push((top_left.x, bottom_right.y));
-        data.texcoords.push((bottom_right.x, top_left.y));
-        data.texcoords.push((bottom_right.x, bottom_right.y));
+        data.texcoords.push((texture.left, texture.top));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.right, texture.top));
+        data.texcoords.push((texture.right, texture.bottom));
         for _ in 0..4 {
             data.normals.push((0.0, -1.0, 0.0));
         }
@@ -110,12 +105,9 @@ pub fn append_cube_sided(
     data: &mut MeshData,
     pos: Vec3,
     sides: BlockSides<bool>,
-    side_top_left: Vec2,
-    side_bottom_right: Vec2,
-    top_top_left: Vec2,
-    top_bottom_right: Vec2,
-    bottom_top_left: Vec2,
-    bottom_bottom_right: Vec2,
+    side: TexRect,
+    top: TexRect,
+    bottom: TexRect,
 ) {
     let mut size: i32 = data.vertices.len() as _;
     if sides.back {
@@ -125,11 +117,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 0.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((side_top_left.x, side_bottom_right.y));
-        data.texcoords
-            .push((side_bottom_right.x, side_bottom_right.y));
-        data.texcoords.push((side_top_left.x, side_top_left.y));
-        data.texcoords.push((side_bottom_right.x, side_top_left.y));
+        data.texcoords.push((side.left, side.bottom));
+        data.texcoords.push((side.right, side.bottom));
+        data.texcoords.push((side.left, side.top));
+        data.texcoords.push((side.right, side.top));
         for _ in 0..4 {
             data.normals.push((0.0, 0.0, -1.0));
         }
@@ -142,11 +133,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 0.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords
-            .push((side_bottom_right.x, side_bottom_right.y));
-        data.texcoords.push((side_bottom_right.x, side_top_left.y));
-        data.texcoords.push((side_top_left.x, side_bottom_right.y));
-        data.texcoords.push((side_top_left.x, side_top_left.y));
+        data.texcoords.push((side.right, side.bottom));
+        data.texcoords.push((side.right, side.top));
+        data.texcoords.push((side.left, side.bottom));
+        data.texcoords.push((side.left, side.top));
         for _ in 0..4 {
             data.normals.push((-1.0, 0.0, 0.0));
         }
@@ -160,11 +150,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords
-            .push((side_bottom_right.x, side_bottom_right.y));
-        data.texcoords.push((side_top_left.x, side_bottom_right.y));
-        data.texcoords.push((side_bottom_right.x, side_top_left.y));
-        data.texcoords.push((side_top_left.x, side_top_left.y));
+        data.texcoords.push((side.right, side.bottom));
+        data.texcoords.push((side.left, side.bottom));
+        data.texcoords.push((side.right, side.top));
+        data.texcoords.push((side.left, side.top));
         for _ in 0..4 {
             data.normals.push((0.0, 0.0, 1.0));
         }
@@ -177,11 +166,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((side_top_left.x, side_bottom_right.y));
-        data.texcoords.push((side_top_left.x, side_top_left.y));
-        data.texcoords
-            .push((side_bottom_right.x, side_bottom_right.y));
-        data.texcoords.push((side_bottom_right.x, side_top_left.y));
+        data.texcoords.push((side.left, side.bottom));
+        data.texcoords.push((side.left, side.top));
+        data.texcoords.push((side.right, side.bottom));
+        data.texcoords.push((side.right, side.top));
         for _ in 0..4 {
             data.normals.push((1.0, 0.0, 0.0));
         }
@@ -194,11 +182,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 1.0, pos.y + 1.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((top_top_left.x, top_top_left.y));
-        data.texcoords.push((top_top_left.x, top_bottom_right.y));
-        data.texcoords.push((top_bottom_right.x, top_top_left.y));
-        data.texcoords
-            .push((top_bottom_right.x, top_bottom_right.y));
+        data.texcoords.push((top.left, top.top));
+        data.texcoords.push((top.left, top.bottom));
+        data.texcoords.push((top.right, top.top));
+        data.texcoords.push((top.right, top.bottom));
         for _ in 0..4 {
             data.normals.push((0.0, 1.0, 0.0));
         }
@@ -211,13 +198,10 @@ pub fn append_cube_sided(
         data.vertices.push((pos.x + 1.0, pos.y + 0.0, pos.z + 1.0));
         data.indices.push((0 + size, 1 + size, 2 + size));
         data.indices.push((1 + size, 2 + size, 3 + size));
-        data.texcoords.push((bottom_top_left.x, bottom_top_left.y));
-        data.texcoords
-            .push((bottom_top_left.x, bottom_bottom_right.y));
-        data.texcoords
-            .push((bottom_bottom_right.x, bottom_top_left.y));
-        data.texcoords
-            .push((bottom_bottom_right.x, bottom_bottom_right.y));
+        data.texcoords.push((bottom.left, bottom.top));
+        data.texcoords.push((bottom.left, bottom.bottom));
+        data.texcoords.push((bottom.right, bottom.top));
+        data.texcoords.push((bottom.right, bottom.bottom));
         for _ in 0..4 {
             data.normals.push((0.0, -1.0, 0.0));
         }

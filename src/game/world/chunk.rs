@@ -12,13 +12,16 @@ pub struct Chunk {
     blocks: [[[BlockID; 16]; 16]; 16],
 
     filename: String,
+    modified: bool,
 }
 
 unsafe impl Send for Chunk {}
 
 impl Drop for Chunk {
     fn drop(&mut self) {
-        self.save().unwrap();
+        if self.modified {
+            self.save().unwrap();
+        }
     }
 }
 
@@ -30,6 +33,7 @@ impl Chunk {
             model: None,
             blocks: [[[0; 16]; 16]; 16],
             filename: format!("save/{}-{}-{}.chunk", pos.x, pos.y, pos.z),
+            modified: false,
         };
         if let Err(_) = chunk.load() {
             chunk.generate(manager);
@@ -114,6 +118,7 @@ impl Chunk {
 
     /// Set a block, panics if outside a chunk
     pub fn set_block(&mut self, pos: BlockPos, b: BlockID) {
+        self.modified = true;
         self.blocks[pos.x as usize][pos.y as usize][pos.z as usize] = b;
     }
 

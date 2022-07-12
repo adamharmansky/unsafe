@@ -1,0 +1,160 @@
+[
+  {
+    "name": "air",
+    "solid": false
+  },
+  {
+    "name": "stone",
+    "model": "block",
+    "texture": {
+      "left": 16,
+      "top": 0,
+      "right": 32,
+      "bottom": 16
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
+    "name": "grass",
+    "model": "sided",
+    "textures": {
+      "bottom": {
+        "left": 64,
+        "top": 0,
+        "right": 80,
+        "bottom": 16
+      },
+      "side": {
+        "left": 80,
+        "top": 0,
+        "right": 96,
+        "bottom": 16
+      },
+      "top": {
+        "left": 32,
+        "top": 0,
+        "right": 48,
+        "bottom": 16
+      }
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
+    "name": "planks",
+    "model": "block",
+    "texture": {
+      "left": 48,
+      "top": 0,
+      "right": 64,
+      "bottom": 16
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
+    "name": "harold",
+    "model": "block",
+    "texture": {
+      "left": 0,
+      "top": 16,
+      "right": 128,
+      "bottom": 144
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
+    "name": "dirt",
+    "model": "block",
+    "texture": {
+      "left": 64,
+      "top": 0,
+      "right": 80,
+      "bottom": 16
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
+    "name": "log",
+    "model": "sided",
+    "textures": {
+      "bottom": {
+        "left": 96,
+        "top": 0,
+        "right": 112,
+        "bottom": 16
+      },
+      "side": {
+        "left": 112,
+        "top": 0,
+        "right": 128,
+        "bottom": 16
+      },
+      "top": {
+        "left": 96,
+        "top": 0,
+        "right": 112,
+        "bottom": 16
+      }
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  }
+]

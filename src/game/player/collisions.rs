@@ -100,7 +100,7 @@ pub fn check_collisions(player: &mut Player, game: &mut Game) -> BlockSides<Opti
             for k in (player_pos.z - 1)..(player_pos.z + 2) {
                 let pos = BlockPos::new(i, j, k);
                 if let Some(b) = game.chunks.get_block(pos) {
-                    for l in game.blocks[b].collider {
+                    for l in &game.blocks[b].collider {
                         let result = collide(
                             player,
                             BlockCollider {
