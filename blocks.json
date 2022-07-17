@@ -156,5 +156,40 @@
       }
     ],
     "solid": true
+  },
+  {
+    "name": "slab",
+    "model": "slab",
+    "textures": {
+      "bottom": {
+        "left": 0,
+        "top": 16,
+        "right": 128,
+        "bottom": 144
+      },
+      "side": {
+        "left": 0,
+        "top": 16,
+        "right": 128,
+        "bottom": 144
+      },
+      "top": {
+        "left": 0,
+        "top": 16,
+        "right": 128,
+        "bottom": 144
+      }
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 0.5,
+        "d": 1
+      }
+    ],
+    "solid": true
   }
 ]

@@ -18,7 +18,7 @@ pub struct Player {
 
 impl Player {
     pub const HEIGHT: f32 = 1.8;
-    pub const RADIUS: f32 = 0.2;
+    pub const RADIUS: f32 = 0.4;
     pub const CAMERA_HEIGHT: f32 = 1.6;
     const SPEED: f32 = 0.05;
     const FRICTION: f32 = 0.7;
@@ -31,6 +31,7 @@ impl Player {
             game.blocks[String::from("planks")],
             game.blocks[String::from("harold")],
             game.blocks[String::from("log")],
+            game.blocks[String::from("slab")],
         ];
         let item_mat = Mat4::from_translation(Vec3::new(-0.8, 0.8, 0.0))
             * Mat4::from_scale(Vec3::new(0.15, 0.15, 0.15))
@@ -113,18 +114,6 @@ impl Player {
                 self.velocity.x = 0.0;
             }
         }
-        if let Some(y) = collisions.bottom {
-            if self.velocity.y >= y.0 {
-                self.pos.y = y.1;
-                self.velocity.y = 0.0;
-            }
-        }
-        if let Some(y) = collisions.top {
-            if self.velocity.y <= -y.0 {
-                self.pos.y = y.1;
-                self.velocity.y = 0.0;
-            }
-        }
         if let Some(z) = collisions.back {
             if self.velocity.z >= z.0 {
                 self.pos.z = z.1;
@@ -135,6 +124,18 @@ impl Player {
             if self.velocity.z <= -z.0 {
                 self.pos.z = z.1;
                 self.velocity.z = 0.0;
+            }
+        }
+        if let Some(y) = collisions.top {
+            if self.velocity.y <= -y.0 {
+                self.pos.y = y.1;
+                self.velocity.y = 0.0;
+            }
+        }
+        if let Some(y) = collisions.bottom {
+            if self.velocity.y >= y.0 {
+                self.pos.y = y.1;
+                self.velocity.y = 0.0;
             }
         }
 
@@ -172,6 +173,9 @@ impl Player {
         }
         if input.keys_pressed.contains(&VirtualKeyCode::Key6) {
             self.selected_block = 5;
+        }
+        if input.keys_pressed.contains(&VirtualKeyCode::Key7) {
+            self.selected_block = 6;
         }
 
         if input.keys_pressed.contains(&VirtualKeyCode::E) {

@@ -31,12 +31,9 @@ fn collide(player: &Player, collider: BlockCollider) -> Option<(BlockSide, f32, 
         collider.z + collider.d,
     );
 
-    // if colliding_x && colliding_y && colliding_z {
-    //     panic!(
-    //         "Colliding in all three dimensions: {:?}, {:?}",
-    //         player.pos, collider
-    //     );
-    // }
+    if colliding_x && colliding_y && colliding_z {
+        return None;
+    }
 
     if colliding_y && colliding_z {
         Some(if player.pos.x > collider.x {
@@ -94,10 +91,13 @@ pub fn check_collisions(player: &mut Player, game: &mut Game) -> BlockSides<Opti
 
     let mut distances = std::collections::HashMap::<BlockSide, (f32, f32)>::new();
 
+    let block_radius: i32 = Player::RADIUS.ceil() as _;
+    let block_height: i32 = Player::HEIGHT.ceil() as _;
+
     // get all colliders surrouding the player
-    for i in (player_pos.x - 1)..(player_pos.x + 2) {
-        for j in (player_pos.y - 1)..(player_pos.y + 4) {
-            for k in (player_pos.z - 1)..(player_pos.z + 2) {
+    for i in (player_pos.x - block_radius)..(player_pos.x + block_radius + 1) {
+        for j in (player_pos.y - 1)..(player_pos.y + block_height + 2) {
+            for k in (player_pos.z - block_radius)..(player_pos.z + block_radius + 1) {
                 let pos = BlockPos::new(i, j, k);
                 if let Some(b) = game.chunks.get_block(pos) {
                     for l in &game.blocks[b].collider {

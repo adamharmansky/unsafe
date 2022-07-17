@@ -132,46 +132,47 @@ impl Chunk {
     /// Updates the chunk (generates a mesh)
     ///
     /// Takes a couple of milliseconds
-    pub fn update(&mut self, blocks: &BlockManager) -> MeshData {
+    pub fn update(&mut self, blocks: Arc<BlockManager>, world: &mut ChunkServer) {
         let mut data = MeshData::new();
         for i in 0..16 {
             for j in 0..16 {
                 for k in 0..16 {
+                    let p = BlockPos::new(
+                        self.pos.x * 16 + i as i32,
+                        self.pos.y * 16 + j as i32,
+                        self.pos.z * 16 + k as i32,
+                    );
                     (blocks[self.blocks[i][j][k]].gen_mesh)(
                         &mut data,
-                        BlockPos::new(
-                            self.pos.x * 16 + i as i32,
-                            self.pos.y * 16 + j as i32,
-                            self.pos.z * 16 + k as i32,
-                        ),
+                        p,
                         util::BlockSides {
                             top: if j == 15 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(0, 1, 0)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i][j + 1][k]].solid
                             },
                             bottom: if j == 0 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(0, -1, 0)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i][j - 1][k]].solid
                             },
                             left: if i == 0 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(-1, 0, 0)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i - 1][j][k]].solid
                             },
                             right: if i == 15 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(1, 0, 0)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i + 1][j][k]].solid
                             },
                             front: if k == 15 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(0, 0, 1)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i][j][k + 1]].solid
                             },
                             back: if k == 0 {
-                                true
+                                !blocks[world.get_block(p + BlockPos::new(0, 0, -1)).unwrap()].solid
                             } else {
                                 !blocks[self.blocks[i][j][k - 1]].solid
                             },
@@ -180,6 +181,7 @@ impl Chunk {
                 }
             }
         }
-        data
+        self.model = None;
+        self.model = Some(Model::new(&data));
     }
 }

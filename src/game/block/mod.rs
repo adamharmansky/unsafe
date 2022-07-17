@@ -5,7 +5,7 @@ use std::fs::File;
 use std::io::Read;
 use util::BlockCollider;
 
-mod append_cube;
+mod meshgen;
 
 use util::BlockSides;
 
@@ -85,7 +85,7 @@ impl From<&json::JsonValue> for BlockType {
                             bottom: value["texture"]["bottom"].as_i32().unwrap() as f32 / 1024.0,
                         };
                         Arc::new(move |mesh, pos, sides| {
-                            append_cube::append_cube(mesh, pos.into(), sides, texture)
+                            meshgen::append_cube(mesh, pos.into(), sides, texture)
                         })
                     }
                     "sided" => {
@@ -118,14 +118,40 @@ impl From<&json::JsonValue> for BlockType {
                                 / 1024.0,
                         };
                         Arc::new(move |mesh, pos, sides| {
-                            append_cube::append_cube_sided(
-                                mesh,
-                                pos.into(),
-                                sides,
-                                side,
-                                top,
-                                bottom,
-                            )
+                            meshgen::append_cube_sided(mesh, pos.into(), sides, side, top, bottom)
+                        })
+                    }
+                    "slab" => {
+                        let top = util::TexRect {
+                            left: value["textures"]["top"]["left"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            top: value["textures"]["top"]["top"].as_i32().unwrap() as f32 / 1024.0,
+                            right: value["textures"]["top"]["right"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            bottom: value["textures"]["top"]["bottom"].as_i32().unwrap() as f32
+                                / 1024.0,
+                        };
+                        let bottom = util::TexRect {
+                            left: value["textures"]["bottom"]["left"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            top: value["textures"]["bottom"]["top"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            right: value["textures"]["bottom"]["right"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            bottom: value["textures"]["bottom"]["bottom"].as_i32().unwrap() as f32
+                                / 1024.0,
+                        };
+                        let side = util::TexRect {
+                            left: value["textures"]["side"]["left"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            top: value["textures"]["side"]["top"].as_i32().unwrap() as f32 / 1024.0,
+                            right: value["textures"]["side"]["right"].as_i32().unwrap() as f32
+                                / 1024.0,
+                            bottom: value["textures"]["side"]["bottom"].as_i32().unwrap() as f32
+                                / 1024.0,
+                        };
+                        Arc::new(move |mesh, pos, sides| {
+                            meshgen::append_slab(mesh, pos.into(), sides, side, top, bottom)
                         })
                     }
                     _ => Arc::new(|_, _, _| {}),
