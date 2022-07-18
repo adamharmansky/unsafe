@@ -1,4 +1,3 @@
-extern crate json;
 use super::*;
 use std::collections::HashMap;
 use std::fs::File;

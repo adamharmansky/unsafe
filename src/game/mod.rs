@@ -1,3 +1,5 @@
+extern crate json;
+
 mod block;
 mod input;
 mod player;
@@ -12,6 +14,8 @@ use block::BlockManager;
 use input::InputState;
 use player::Player;
 use render_view::RenderView;
+use std::fs::File;
+use std::io::Read;
 use std::rc::Rc;
 use std::sync::Arc;
 use util::BlockPos;
@@ -21,17 +25,27 @@ pub struct Game {
     pub input: InputState,
     pub blocks: Arc<BlockManager>,
     pub chunks: ChunkServer,
+    pub config: json::JsonValue,
 }
 
 impl Game {
     pub const GRAVITY: f32 = -0.01;
     pub fn new() -> Self {
+        let config = {
+            let mut config_file = File::open("config.json").expect("cannot open config file");
+            let mut config_json = String::new();
+            config_file.read_to_string(&mut config_json).unwrap();
+            json::parse(config_json.as_str()).unwrap()
+        };
         let manager = Arc::new(BlockManager::new("blocks.json"));
         let clone = manager.clone();
+        let chunks = ChunkServer::new(Rc::new(Texture::load("blocks.png")), clone, &config);
+
         let mut game = Game {
             input: InputState::new(),
             blocks: manager,
-            chunks: ChunkServer::new(Rc::new(Texture::load("blocks.png")), clone),
+            chunks,
+            config,
         };
         game.chunks.update(BlockPos::new(0, 0, 0));
         game

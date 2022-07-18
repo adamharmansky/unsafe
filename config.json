@@ -1,0 +1,9 @@
+{
+  "view_distance_comment": "The amount of chunks lo load in each direction - the total amount of chunks is (view_distance*2+1)^3",
+  "view_distance": 8,
+
+  "loading_limit_comment": "How many chunks should be loaded each frame, causes lag if too much, slow world loading if too little",
+  "loading_limit": 16,
+  
+  "save_dir": "save"
+}

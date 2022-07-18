@@ -12,6 +12,7 @@ pub struct Chunk {
     blocks: [[[BlockID; 16]; 16]; 16],
 
     filename: String,
+    save_dir: String,
     modified: bool,
 }
 
@@ -27,13 +28,14 @@ impl Drop for Chunk {
 
 impl Chunk {
     /// Creates a new chunk, without a mesh
-    pub fn new(pos: BlockPos, manager: &BlockManager) -> Self {
+    pub fn new(pos: BlockPos, manager: &BlockManager, save_dir: &str) -> Self {
         let mut chunk = Chunk {
             pos,
             model: None,
             blocks: [[[0; 16]; 16]; 16],
-            filename: format!("save/{}-{}-{}.chunk", pos.x, pos.y, pos.z),
+            filename: format!("{}/{}-{}-{}.chunk", save_dir, pos.x, pos.y, pos.z),
             modified: false,
+            save_dir: String::from(save_dir),
         };
         if let Err(_) = chunk.load() {
             chunk.generate(manager);
@@ -57,8 +59,8 @@ impl Chunk {
     }
 
     pub fn save(&mut self) -> Result<(), std::io::Error> {
-        if let Ok(_) = std::fs::create_dir("save") {
-            println!("had to create the save directory!");
+        if let Ok(_) = std::fs::create_dir(self.save_dir.as_str()) {
+            println!("creating a new save!");
         }
         let file = File::create(&self.filename)?;
         let mut file = BufWriter::new(file);

@@ -15,19 +15,30 @@ pub struct ChunkServer {
     ///
     /// One side od the box is view_distance*2+1
     view_distance: i32,
+    /// How many chunks should be handled each frame
+    loading_limit: u32,
 
-    // Position of the camera (or anything else loading the chunks)
+    /// Position of the camera (or anything else loading the chunks)
     pos: BlockPos,
+
+    /// The directory where modified chunks are saved
+    save_dir: String,
 
     pub block_manager: Arc<BlockManager>,
 }
 
 impl ChunkServer {
-    pub fn new(texture: Rc<Texture>, block_manager: Arc<BlockManager>) -> Self {
+    pub fn new(
+        texture: Rc<Texture>,
+        block_manager: Arc<BlockManager>,
+        config: &json::JsonValue,
+    ) -> Self {
         Self {
             chunks: HashMap::new(),
             texture,
-            view_distance: 12,
+            view_distance: config["view_distance"].as_i32().unwrap(),
+            loading_limit: config["loading_limit"].as_u32().unwrap(),
+            save_dir: String::from(config["save_dir"].as_str().unwrap()),
             pos: BlockPos::new(std::i32::MAX, std::i32::MAX, std::i32::MAX),
             block_manager,
             gen_queue: VecDeque::new(),
@@ -36,7 +47,7 @@ impl ChunkServer {
 
     /// Load new and unload old chunks, can be safely called every frame
     pub fn update(&mut self, camera: BlockPos) {
-        self.handle_generation(16);
+        self.handle_generation(self.loading_limit);
         let new_pos = BlockPos::new(camera.x >> 4, camera.y >> 4, camera.z >> 4);
         if new_pos != self.pos {
             self.pos = new_pos;
@@ -69,7 +80,7 @@ impl ChunkServer {
     }
 
     // Generate at most `count` chunks from the queue
-    fn handle_generation(&mut self, count: i32) {
+    fn handle_generation(&mut self, count: u32) {
         let mut generated_chunks = 0;
         loop {
             if let Some(x) = self.gen_queue.pop_front() {
@@ -81,7 +92,7 @@ impl ChunkServer {
                 let bm = self.block_manager.clone();
                 let mut c = match self.chunks.remove(&x) {
                     Some(a) => a,
-                    None => Box::new(Chunk::new(x, &self.block_manager)),
+                    None => Box::new(Chunk::new(x, &self.block_manager, &self.save_dir)),
                 };
                 c.update(bm, self);
                 self.chunks.insert(x, c);
@@ -134,8 +145,10 @@ impl ChunkServer {
     ///
     /// The chunk will either get overwritten by a generated one or deleted later.
     fn cache_chunk(&mut self, pos: BlockPos) {
-        self.chunks
-            .insert(pos, Box::new(Chunk::new(pos, &self.block_manager)));
+        self.chunks.insert(
+            pos,
+            Box::new(Chunk::new(pos, &self.block_manager, &self.save_dir)),
+        );
     }
 
     /// Get a block
