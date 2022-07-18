@@ -6,11 +6,7 @@ A minecraft clone made in Rust. The world is infinite in all three directions.
 
 ## HEAVY WIP
 
-there is no:
-
- * ~~placement of blocks~~
- * ~~world saving~~ (okay now there is some basic saving)
- * actual gameplay (there is harold tho)
+there is no actual gameplay yet (there is harold tho)
 
 This is how it looks so far:
 
@@ -18,7 +14,7 @@ This is how it looks so far:
 
 ## How to play the game
 
-Starting the game is very simple:
+Starting the game is very simple, just remember to run on RELEASE:
 
 ```
 cargo run -r

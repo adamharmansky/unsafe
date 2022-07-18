@@ -27,7 +27,7 @@ impl ChunkServer {
         Self {
             chunks: HashMap::new(),
             texture,
-            view_distance: 6,
+            view_distance: 12,
             pos: BlockPos::new(std::i32::MAX, std::i32::MAX, std::i32::MAX),
             block_manager,
             gen_queue: VecDeque::new(),
@@ -115,11 +115,25 @@ impl ChunkServer {
         }
     }
 
+    /// Takes a chunk out of the hash map, updates it, and puts it back in
+    fn update_chunk(&mut self, p: BlockPos) -> Option<()> {
+        let mut c = match self.chunks.remove(&p) {
+            Some(x) => x,
+            None => {
+                self.cache_chunk(p);
+                self.chunks.remove(&p)?
+            }
+        };
+        let bm = self.block_manager.clone();
+        c.update(bm, self);
+        self.chunks.insert(p, c);
+        Some(())
+    }
+
     /// Loads a chunk at a given posision without generating the model, if the chunk doesn't exist.
     ///
     /// The chunk will either get overwritten by a generated one or deleted later.
     fn cache_chunk(&mut self, pos: BlockPos) {
-        println!("Caching chunk at {:?}", pos);
         self.chunks
             .insert(pos, Box::new(Chunk::new(pos, &self.block_manager)));
     }
@@ -140,6 +154,7 @@ impl ChunkServer {
     /// Set a block
     pub fn set_block(&mut self, pos: BlockPos, block: BlockID) -> Option<()> {
         let p = BlockPos::new(pos.x >> 4, pos.y >> 4, pos.z >> 4);
+        let inner_pos = BlockPos::new(pos.x & 15, pos.y & 15, pos.z & 15);
         // we need to take the chunk out, update it, and put it back in 🤷.
         let mut c = match self.chunks.remove(&p) {
             Some(x) => x,
@@ -148,10 +163,28 @@ impl ChunkServer {
                 self.chunks.remove(&p)?
             }
         };
-        c.set_block(BlockPos::new(pos.x & 15, pos.y & 15, pos.z & 15), block);
+        c.set_block(inner_pos, block);
         let bm = self.block_manager.clone();
         c.update(bm, self);
         self.chunks.insert(p, c);
+
+        // Update the neighboring chunks, if it's needed
+        if inner_pos.x == 0 {
+            self.update_chunk(p + BlockPos::new(-1, 0, 0))?;
+        } else if inner_pos.x == 15 {
+            self.update_chunk(p + BlockPos::new(1, 0, 0))?;
+        }
+        if inner_pos.y == 0 {
+            self.update_chunk(p + BlockPos::new(0, -1, 0))?;
+        } else if inner_pos.y == 15 {
+            self.update_chunk(p + BlockPos::new(0, 1, 0))?;
+        }
+        if inner_pos.z == 0 {
+            self.update_chunk(p + BlockPos::new(0, 0, -1))?;
+        } else if inner_pos.z == 15 {
+            self.update_chunk(p + BlockPos::new(0, 0, 1))?;
+        }
+
         Some(())
     }
 }
