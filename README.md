@@ -2,15 +2,13 @@
 
 A minecraft clone made in Rust. The world is infinite in all three directions.
 
-**DISCLAIMER**: Some textures are stolen from the [chisel mod](https://github.com/Chisel-Team/Chisel)
-
 ## HEAVY WIP
 
 there is no actual gameplay yet (there is harold tho)
 
 This is how it looks so far:
 
-![](1654457680322443035.png)
+![](screenshot.png)
 
 ## How to play the game
 
