@@ -158,6 +158,28 @@
     "solid": true
   },
   {
+    "name": "leaves",
+    "model": "hedge",
+    "density": 64,
+    "texture": {
+      "left": 128,
+      "top": 0,
+      "right": 144,
+      "bottom": 16
+    },
+    "collider": [
+      {
+        "x": 0,
+        "y": 0,
+        "z": 0,
+        "w": 1,
+        "h": 1,
+        "d": 1
+      }
+    ],
+    "solid": true
+  },
+  {
     "name": "slab",
     "model": "slab",
     "textures": {

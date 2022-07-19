@@ -1,5 +1,3 @@
-extern crate json;
-
 mod block;
 mod input;
 mod player;
@@ -120,10 +118,9 @@ pub fn start() {
                 };
                 let mat = glam::Mat4::perspective_lh(1.0, aspect, 0.1, 1000.0)
                     * glam::Mat4::from_rotation_x(-player.rotation.x)
-                    * glam::Mat4::from_rotation_y(-player.rotation.y)
-                    * glam::Mat4::from_translation(
-                        -player.pos - Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0),
-                    );
+                    * glam::Mat4::from_rotation_y(-player.rotation.y);
+                game_view
+                    .set_camera_position(player.pos + Vec3::new(0.0, Player::CAMERA_HEIGHT, 0.0));
                 game_view.set_view(mat);
                 game_view.set_model(glam::Mat4::IDENTITY);
                 game.chunks.render();

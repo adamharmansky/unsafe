@@ -153,6 +153,18 @@ impl From<&json::JsonValue> for BlockType {
                             meshgen::append_slab(mesh, pos.into(), sides, side, top, bottom)
                         })
                     }
+                    "hedge" => {
+                        let texture = util::TexRect {
+                            left: value["texture"]["left"].as_i32().unwrap() as f32 / 1024.0,
+                            top: value["texture"]["top"].as_i32().unwrap() as f32 / 1024.0,
+                            right: value["texture"]["right"].as_i32().unwrap() as f32 / 1024.0,
+                            bottom: value["texture"]["bottom"].as_i32().unwrap() as f32 / 1024.0,
+                        };
+                        let density = value["density"].as_u32().unwrap();
+                        Arc::new(move |mesh, pos, _| {
+                            meshgen::append_hedge(mesh, pos.into(), texture, density)
+                        })
+                    }
                     _ => Arc::new(|_, _, _| {}),
                 },
                 None => Arc::new(|_, _, _| {}),

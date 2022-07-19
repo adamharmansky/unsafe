@@ -11,6 +11,7 @@ glutin = "0.28.0"
 image = "0.24.2"
 gl33 = "0.2.1"
 json = "0.12.4"
+rand = "0.8.5"
 
 [features]
 global_loader = []

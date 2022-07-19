@@ -314,3 +314,44 @@ pub fn append_slab(
         }
     }
 }
+
+pub fn append_hedge(data: &mut MeshData, pos: Vec3, texture: TexRect, density: u32) {
+    let mut size: i32 = data.vertices.len() as _;
+    for _ in 0..density {
+        let p = pos
+            + Vec3::new(
+                rand::random::<f32>(),
+                rand::random::<f32>(),
+                rand::random::<f32>(),
+            );
+        data.vertices.push((
+            p.x + rand::random::<f32>() - 0.5,
+            p.y + rand::random::<f32>() - 0.5,
+            p.z + rand::random::<f32>() - 0.5,
+        ));
+        data.vertices.push((
+            p.x + rand::random::<f32>() - 0.5,
+            p.y + rand::random::<f32>() - 0.5,
+            p.z + rand::random::<f32>() - 0.5,
+        ));
+        data.vertices.push((
+            p.x + rand::random::<f32>() - 0.5,
+            p.y + rand::random::<f32>() - 0.5,
+            p.z + rand::random::<f32>() - 0.5,
+        ));
+        data.indices.push((0 + size, 1 + size, 2 + size));
+        data.texcoords.push((texture.left, texture.bottom));
+        data.texcoords.push((texture.right, texture.bottom));
+        data.texcoords.push((texture.left, texture.top));
+        let normals = Vec3::new(
+            rand::random::<f32>() * 2.0 + 1.0,
+            rand::random::<f32>() * 2.0 + 1.0,
+            rand::random::<f32>() * 2.0 + 1.0,
+        )
+        .normalize_or_zero();
+        for _ in 0..3 {
+            data.normals.push((normals.x, normals.y, normals.z));
+        }
+        size += 3;
+    }
+}
