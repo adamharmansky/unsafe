@@ -190,10 +190,19 @@ impl Player {
                 front.transform_point3(Vec3::new(0.0, 0.0, 1.0)),
             );
             if let Some(res) = pos {
-                game.chunks.set_block(
-                    res.block + res.side.to_pos(),
-                    self.hotbar[self.selected_block],
-                );
+                let bp =
+                    Into::<Vec3>::into(res.block + res.side.to_pos()) + Vec3::new(0.5, 0.5, 0.5);
+                if (self.pos.x - Self::RADIUS >= bp.x + 0.5
+                    || self.pos.x + Self::RADIUS <= bp.x - 0.5)
+                    || (self.pos.y >= bp.y + 0.5 || self.pos.y + Self::HEIGHT <= bp.y - 0.5)
+                    || (self.pos.z - Self::RADIUS >= bp.z + 0.5
+                        || self.pos.z + Self::RADIUS <= bp.z - 0.5)
+                {
+                    game.chunks.set_block(
+                        res.block + res.side.to_pos(),
+                        self.hotbar[self.selected_block],
+                    );
+                }
             }
         }
         if input.keys_pressed.contains(&VirtualKeyCode::Q) {
